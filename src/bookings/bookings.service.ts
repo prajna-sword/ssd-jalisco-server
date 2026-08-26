@@ -9,7 +9,17 @@ export class BookingsService {
   }
 
   findAll() {
-    return `This action returns all bookings`;
+    const exampleBooking = {
+      bookingId: '1',
+      guestId: '1',
+      roomId: '1',
+      startDate: '2026/08/07',
+      endDate: '2026/08/10',
+      checkInTime: '8:00 AM'
+    } as CreateBookingDto;
+    return [
+      exampleBooking
+    ];
   }
 
   findOne(id: number) {
