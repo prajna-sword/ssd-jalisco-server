@@ -11,6 +11,13 @@ async function bootstrap() {
     transform: true, // Automatically changes types to match the DTO targets
   }));
 
+  // Enable CORS for local development
+  app.enableCors({
+    origin: 'http://localhost:4200', // Your Angular app address
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

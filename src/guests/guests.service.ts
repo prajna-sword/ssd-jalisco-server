@@ -1,26 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Guest } from './entities/guest.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class GuestsService {
-  create(createGuestDto: CreateGuestDto) {
-    return 'This action adds a new guest';
+  constructor(
+    @InjectRepository(Guest)
+    private readonly guestRepository: Repository<Guest>, // 👈 Inject repository
+  ) { }
+
+  async findAll(): Promise<Guest[]> {
+    return await this.guestRepository.find();
   }
 
-  findAll() {
-    return `This action returns all guests`;
+  async findOne(id: string): Promise<Guest | null> {
+    return await this.guestRepository.findOneBy({ guestId: id });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} guest`;
-  }
-
-  update(id: number, updateGuestDto: UpdateGuestDto) {
-    return `This action updates a #${id} guest`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} guest`;
-  }
 }
