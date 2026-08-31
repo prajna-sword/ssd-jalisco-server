@@ -1,7 +1,9 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity({ name: 'payments' })
@@ -56,13 +58,13 @@ export class Payment {
   })
   refundedAmount: string | null;
 
-  @Column({
+  @CreateDateColumn({
     type: 'timestamp',
     name: 'transaction_timestamp',
   })
   transactionTimestamp: Date;
 
-  @Column({
+  @UpdateDateColumn({
     type: 'timestamp',
     name: 'updated_timestamp',
   })

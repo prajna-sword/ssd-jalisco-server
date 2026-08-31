@@ -20,4 +20,8 @@ export class PaymentsService {
     return await this.paymentRepository.findOneBy({ paymentId: id });
   }
 
+  async save(payment: Payment): Promise<Payment | null> {
+    return await this.paymentRepository.save(payment);
+  }
+
 }

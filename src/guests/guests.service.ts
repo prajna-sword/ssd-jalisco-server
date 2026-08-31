@@ -20,4 +20,8 @@ export class GuestsService {
     return await this.guestRepository.findOneBy({ guestId: id });
   }
 
+  async save(guest: Guest) {
+    return this.guestRepository.save(guest);
+  }
+
 }
