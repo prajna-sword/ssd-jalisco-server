@@ -27,6 +27,14 @@ export class BookingsService {
     return await this.bookingRepository.findOneBy({ bookingId: id });
   }
 
+  async findOverlappingBookings(rangeStart: string, rangeEnd: string): Promise<Booking[] | null> {
+    return await this.bookingRepository
+      .createQueryBuilder('booking')
+      .where('booking.checkInDate <= :rangeEnd', { rangeEnd })
+      .andWhere('booking.checkOutDate >= :rangeStart', { rangeStart })
+      .getMany();
+  }
+
   async createBooking(bookingPayload: BookingPayload): Promise<Booking | null> {
     console.log(bookingPayload);
 
