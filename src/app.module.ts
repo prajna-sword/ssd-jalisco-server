@@ -7,6 +7,7 @@ import { GuestsModule } from './guests/guests.module';
 import { PaymentsModule } from './payments/payments.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GuestInquiriesModule } from './guest-inquiries/guest-inquiries.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -21,6 +22,7 @@ import { GuestInquiriesModule } from './guest-inquiries/guest-inquiries.module';
       synchronize: true, // Remember to turn this OFF in production!
     }),
     GuestInquiriesModule,
+    EmployeesModule,
   ],
   controllers: [],
   providers: [],
