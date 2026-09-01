@@ -8,6 +8,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GuestInquiriesModule } from './guest-inquiries/guest-inquiries.module';
 import { EmployeesModule } from './employees/employees.module';
+import { HotelStatsModule } from './hotel-stats/hotel-stats.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -23,6 +24,7 @@ import { EmployeesModule } from './employees/employees.module';
     }),
     GuestInquiriesModule,
     EmployeesModule,
+    HotelStatsModule,
   ],
   controllers: [],
   providers: [],
