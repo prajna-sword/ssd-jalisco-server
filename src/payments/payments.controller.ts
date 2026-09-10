@@ -12,4 +12,10 @@ export class PaymentsController {
     return this.paymentsService.findAll();
   }
 
+  @Post('create-intent') // Enforces POST /payment/create-intent
+  async createIntent(
+    @Body() body: { nights: number; roomType: string }
+  ) {
+    return await this.paymentsService.generateCheckoutIntent(body);
+  }
 }
