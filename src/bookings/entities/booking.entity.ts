@@ -1,9 +1,10 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Generated
 } from 'typeorm';
 
 
@@ -17,6 +18,9 @@ export class Booking {
 
   @Column({ type: 'bigint', name: 'room_id' })
   roomId: string;
+
+  @Column({ type: 'bigint', name: 'multi_booking_xref_id' })
+  multiBookingXrefId: string;
 
   @Column({ type: 'date', name: 'check_in_date' })
   checkInDate: Date;
@@ -35,6 +39,10 @@ export class Booking {
 
   @Column({ type: 'time', name: 'check_out_time', nullable: true })
   checkOutTime: string | null;
+
+  @Column({ type: 'uuid', name: 'booking_uuid' })
+  @Generated('uuid')
+  bookingUUID: string;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'booking_timestamp' })
   bookingTimestamp: Date;

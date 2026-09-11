@@ -53,6 +53,55 @@ export class Guest {
   phoneFullE164: string;
 
   @Column({
+    type: 'text',
+    name: 'addr_line_one',
+  })
+  addrLineOne: string;
+
+  @Column({
+    type: 'text',
+    name: 'addr_line_two',
+  })
+  addrLineTwo: string;
+
+  @Column({
+    type: 'text',
+    name: 'addr_city',
+  })
+  addrCity: string;
+
+  @Column({
+    type: 'text',
+    name: 'addr_state_or_province',
+  })
+  addrStateOrProvince: string;
+
+  @Column({
+    type: 'text',
+    name: 'addr_country',
+  })
+  addrCountry: string;
+
+  @Column({
+    type: 'text',
+    name: 'addr_zip_code',
+  })
+  addrZipCode: string;
+
+  @Column({
+    type: 'text',
+    name: 'stripe_cust_id',
+  })
+  stripeCustId: string;
+
+  @Column({ 
+    type: 'boolean', 
+    name: 'preferred_guest', 
+    default: false 
+  })
+  isPreferredGuest: boolean;
+
+  @Column({
     type: 'inet',
     name: 'guest_inet',
     nullable: true,

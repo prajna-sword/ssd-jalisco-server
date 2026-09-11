@@ -15,6 +15,12 @@ export class Payment {
   paymentId: string;
 
   @Column({
+    type: 'text',
+    name: 'payment_type',
+  })
+  paymentType: string;
+
+  @Column({
     type: 'bigint',
     name: 'guest_id',
   })

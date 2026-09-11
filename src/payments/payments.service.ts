@@ -53,7 +53,7 @@ export class PaymentsService {
       }
       let totalAmount = 0;
       bookedRooms.forEach(room => {
-        totalAmount += (this.moneyToNumber(room.nightlyRate) * bookingDetails.nights) 
+        totalAmount += (this.moneyToNumber(room.nightlyRate) * bookingDetails.nights)
       });
 
       // 2. Stripe expects integers in the smallest currency unit (cents/sub-currency)
@@ -64,7 +64,7 @@ export class PaymentsService {
       const intent = await this.stripe.paymentIntents.create({
         amount: amountInCents,
         currency: 'mxn', // or 'mxn' if pricing natively in Mexican Pesos
-
+        setup_future_usage: 'off_session', // 👈 Must match the client-side configuration!
         // Highly recommended for elements: allows automatic support for card, Link, ApplePay, etc.
         automatic_payment_methods: {
           enabled: true,
@@ -89,7 +89,7 @@ export class PaymentsService {
     }
   }
 
-    moneyToNumber(moneyStr: string): number {
+  moneyToNumber(moneyStr: string): number {
     // Removes everything except digits, hyphens, and decimal points
     const cleanString = moneyStr.replace(/[^0-9.-]+/g, "");
     return parseFloat(cleanString);

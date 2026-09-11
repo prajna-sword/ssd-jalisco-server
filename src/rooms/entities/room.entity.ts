@@ -39,6 +39,12 @@ export class Room {
   nightlyRate: string;
 
   @Column({
+    type: 'money',
+    name: 'weekly_rate',
+  })
+  weeklyRate: string;
+
+  @Column({
     type: 'text',
     name: 'image_alt_text',
     nullable: true,
