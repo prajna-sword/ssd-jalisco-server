@@ -14,7 +14,7 @@ export class PaymentsController {
 
   @Post('create-intent') // Enforces POST /payment/create-intent
   async createIntent(
-    @Body() body: { nights: number; roomType: string }
+    @Body() body: { nights: number; roomIds: string[] }
   ) {
     return await this.paymentsService.generateCheckoutIntent(body);
   }
