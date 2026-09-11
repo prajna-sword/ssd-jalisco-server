@@ -60,6 +60,12 @@ export class PaymentsService {
       // $100.50 USD becomes 10050 cents. (If using MXN, pesos also use cents)
       const amountInCents = Math.round(totalAmount * 100);
 
+      let roomIdString = '';
+      bookingDetails.roomIds.forEach(roomId => {
+        roomIdString += roomId;
+        roomIdString += ','
+      });
+
       // 3. Create the payment intent object on Stripe's cloud API
       const intent = await this.stripe.paymentIntents.create({
         amount: amountInCents,
@@ -73,7 +79,7 @@ export class PaymentsService {
         // Optional metadata tracker to match Stripe dashboard entries to your local DB
         metadata: {
           hotelLocation: 'Jalisco_Mexico',
-          roomIds: bookingDetails.roomIds.toString(),
+          roomIds: roomIdString,
           totalNights: bookingDetails.nights.toString(),
         },
       });
