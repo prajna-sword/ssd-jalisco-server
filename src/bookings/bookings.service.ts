@@ -35,7 +35,7 @@ export class BookingsService {
       .getMany();
   }
 
-  async createBooking(bookingPayload: BookingPayload): Promise<Booking | null> {
+  async createBooking(bookingPayload: BookingPayload): Promise<Booking[] | null> {
     console.log(bookingPayload);
 
     // save the guest info
@@ -50,9 +50,11 @@ export class BookingsService {
     let savedGuest = await this.guestsService.save(guest);
 
     // save the booking(s) info
-    // TODO: build support for multiple bookings -> 1 guest & payment
-    let savedBooking;
+    let savedBookings: Booking[] = [];
 
+    // multiple booked rooms at the same time will have 1 stripe payment,
+    // correlated with multiple bookings and payments
+    // our system will treat it like the rooms were booked separately by the same guest
     for (let roomId of bookingPayload.room.roomIds) {
       if (roomId != null) {
         const booking = new Booking();
@@ -64,22 +66,22 @@ export class BookingsService {
         booking.checkOutTime = bookingPayload.guest.checkInTime;
         booking.guestId = savedGuest.guestId;
         console.log(booking);
-        savedBooking = await this.bookingRepository.save(booking);
+        let savedBooking = await this.bookingRepository.save(booking);
+        savedBookings.push(savedBooking);
+        // save the payment info
+        const payment = new Payment();
+        payment.bookingId = savedBooking.bookingId;
+        payment.roomId = savedBooking.roomId;
+        payment.guestId = savedGuest.guestId;
+        payment.paymentAmount = bookingPayload.currentTotal as any;
+        payment.isRefunded = false;
+        payment.stripePaymentId = 'fake-stripe-payment-id';
+        let savedPayment = await this.paymentsService.save(payment);
       }
     }
 
-    // save the payment info
-    const payment = new Payment();
-    payment.bookingId = savedBooking.bookingId;
-    payment.roomId = savedBooking.roomId;
-    payment.guestId = savedGuest.guestId;
-    payment.paymentAmount = bookingPayload.currentTotal as any;
-    payment.isRefunded = false;
-    payment.stripePaymentId = 'fake-stripe-payment-id';
-    let savedPayment = await this.paymentsService.save(payment);
-
     // return the booking(s)
-    return savedBooking;
+    return savedBookings;
   }
 
 }
