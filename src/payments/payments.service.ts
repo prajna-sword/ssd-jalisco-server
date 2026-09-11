@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PaymentsService {
@@ -13,9 +14,10 @@ export class PaymentsService {
 
   constructor(
     @InjectRepository(Payment)
-    private readonly paymentRepository: Repository<Payment>, // 👈 Inject repository  
+    private readonly paymentRepository: Repository<Payment>, // 👈 Inject repository
+    private configService: ConfigService,  
   ) {
-    this.stripe = new Stripe('sk_test_51MAyhmBUjIX7XD0vCntLGsApXxs9fDgmXtD1K5izI31WUFnLBxiecvcBVO8249zrj73rV0Ijq4rtscLhNEFIcck700GDOyvYKG', {
+    this.stripe = new Stripe(configService.get<string>('STRIPE_SECRET_KEY') as any, {
       apiVersion: '2026-08-26.dahlia' as any, // Standard modern Stripe API typing fallback
     });
   }

@@ -11,6 +11,7 @@ import { EmployeesModule } from './employees/employees.module';
 import { HotelStatsModule } from './hotel-stats/hotel-stats.module';
 import { GuestNotificationsModule } from './guest-notifications/guest-notifications.module';
 import { SatInvoicesModule } from './sat-invoices/sat-invoices.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -29,6 +30,9 @@ import { SatInvoicesModule } from './sat-invoices/sat-invoices.module';
     HotelStatsModule,
     GuestNotificationsModule,
     SatInvoicesModule,
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes the module available everywhere
+    }),
   ],
   controllers: [],
   providers: [],
