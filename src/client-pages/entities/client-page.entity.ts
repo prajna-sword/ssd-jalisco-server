@@ -36,6 +36,9 @@ export class ClientPage {
   @Column({ type: 'text', name: 'card_image_alt_text' })
   cardImageAltText: string;
 
+  @Column({ type: 'text', name: 'business_name_route_segment' })
+  businessNameRouteSegment: string;
+
   @CreateDateColumn({ type: 'timestamp', name: 'created_timestamp' })
   createdTimestamp: Date;
 
