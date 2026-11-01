@@ -21,7 +21,7 @@ export class PaymentsService {
     private configService: ConfigService,
     private roomService: RoomsService,
   ) {
-    this.stripe = new Stripe(configService.get<string>('STRIPE_SECRET_KEY') as any, {
+    this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY') as any, {
       apiVersion: '2026-08-26.dahlia' as any, // Standard modern Stripe API typing fallback
     });
   }
