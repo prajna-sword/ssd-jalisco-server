@@ -11,10 +11,18 @@ export class ClientPagesService {
   ) { }
 
   async findAll(): Promise<ClientPage[]> {
-    return await this.clientPageRepository.find();
+    const clientPages = await this.clientPageRepository.find();
+    for (let page of clientPages as any) {
+      console.log(page);
+    }
+    return clientPages;
   }
 
   async findOne(id: string): Promise<ClientPage | null> {
-    return await this.clientPageRepository.findOneBy({ clientPageId: id });
+    const clientPages = await this.clientPageRepository.findOneBy({ clientPageId: id });
+    for (let page of clientPages as any) {
+      console.log(page);
+    }
+    return clientPages;
   }
 }

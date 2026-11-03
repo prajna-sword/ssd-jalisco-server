@@ -39,6 +39,27 @@ export class ClientPage {
   @Column({ type: 'text', name: 'business_name_route_segment' })
   businessNameRouteSegment: string;
 
+  @Column({ name: 'detail_page_hero_title', type: 'text', nullable: true })
+  detailPageHeroTitle: string;
+
+  @Column({ name: 'detail_page_hero_subtitle', type: 'text', nullable: true })
+  detailPageHeroSubtitle: string;
+
+  @Column({ name: 'detail_page_hero_image_url', type: 'text', nullable: true })
+  detailPageHeroImageUrl: string;
+
+  @Column({ name: 'detail_page_business_description', type: 'text', nullable: true })
+  detailPageBusinessDescription: string;
+
+  @Column({ name: 'hotel_estimated_rate_low', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  hotelEstimatedRateLow: string;
+
+  @Column({ name: 'hotel_estimated_rate_high', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  hotelEstimatedRateHigh: string;
+
+  @Column({ name: 'hotel_amenities_list', type: 'text', array: true, nullable: true })
+  hotelAmenitiesList: string[];
+
   @CreateDateColumn({ type: 'timestamp', name: 'created_timestamp' })
   createdTimestamp: Date;
 
