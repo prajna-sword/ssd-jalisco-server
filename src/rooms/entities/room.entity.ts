@@ -15,6 +15,12 @@ export class Room {
   roomId: string;
 
   @Column({
+    type: 'bigint',
+    name: 'client_page_id',
+  })
+  clientPageId: string;
+
+  @Column({
     type: 'text',
     name: 'room_title',
   })
