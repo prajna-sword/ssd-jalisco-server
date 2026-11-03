@@ -19,7 +19,7 @@ export class Booking {
   @Column({ type: 'bigint', name: 'room_id' })
   roomId: string;
 
-  @Column({ type: 'bigint', name: 'multi_booking_xref_id' })
+  @Column({ type: 'bigint', name: 'multi_booking_xref_id', nullable: true })
   multiBookingXrefId: string;
 
   @Column({ type: 'date', name: 'check_in_date' })

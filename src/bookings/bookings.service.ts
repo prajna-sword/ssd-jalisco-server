@@ -40,11 +40,16 @@ export class BookingsService {
 
     // save the guest info
     const guest = new Guest();
-    guest.firstName = bookingPayload.guest.firstName;
-    guest.lastName = bookingPayload.guest.lastName;
+    guest.fullName = bookingPayload.guest.guestName;
     guest.emailAddress = bookingPayload.guest.emailAddress;
-    guest.phoneCountryCode = bookingPayload.guest.phoneCountryCode;
-    guest.phoneLocal = bookingPayload.guest.phoneLocal;
+    guest.phoneNumber = bookingPayload.guest.phoneNumber;
+    guest.addrLineOne = bookingPayload.guest.guestBillingAddress.line1;
+    guest.addrLineTwo = bookingPayload.guest.guestBillingAddress.line2;
+    guest.addrCity = bookingPayload.guest.guestBillingAddress.city;
+    guest.addrCountry = bookingPayload.guest.guestBillingAddress.country;
+    guest.addrZipCode = bookingPayload.guest.guestBillingAddress.postalCode
+    guest.addrStateOrProvince = bookingPayload.guest.guestBillingAddress.state;
+    guest.stripeCustId = 'fake-customer-id';
     guest.guestDeviceId = 'fake-device-id';
     guest.guestInet = '0.0.0.0';
     let savedGuest = await this.guestsService.save(guest);
@@ -62,8 +67,8 @@ export class BookingsService {
         booking.checkOutDate = bookingPayload.room.checkOutDate;
         booking.numberOfGuests = bookingPayload.guest.numberOfGuests;
         booking.roomId = roomId as any;
-        booking.checkInTime = bookingPayload.guest.checkInTime;
-        booking.checkOutTime = bookingPayload.guest.checkInTime;
+        booking.checkInTime = '14:30:15';
+        booking.checkOutTime = '14:30:15';
         booking.guestId = savedGuest.guestId;
         console.log(booking);
         let savedBooking = await this.bookingRepository.save(booking);
@@ -74,8 +79,9 @@ export class BookingsService {
         payment.roomId = savedBooking.roomId;
         payment.guestId = savedGuest.guestId;
         payment.paymentAmount = bookingPayload.currentTotal as any;
+        payment.paymentType = 'hotel_booking';
         payment.isRefunded = false;
-        payment.stripePaymentId = 'fake-stripe-payment-id';
+        payment.stripePaymentId = bookingPayload.stripePaymentIntentId;
         let savedPayment = await this.paymentsService.save(payment);
       }
     }

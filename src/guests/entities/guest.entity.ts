@@ -16,15 +16,9 @@ export class Guest {
 
   @Column({
     type: 'text',
-    name: 'first_name',
+    name: 'full_name',
   })
-  firstName: string;
-
-  @Column({
-    type: 'text',
-    name: 'last_name',
-  })
-  lastName: string;
+  fullName: string;
 
   @Column({
     type: 'text',
@@ -34,23 +28,9 @@ export class Guest {
 
   @Column({
     type: 'text',
-    name: 'phone_country_code',
+    name: 'phone_number',
   })
-  phoneCountryCode: string;
-
-  @Column({
-    type: 'text',
-    name: 'phone_local',
-  })
-  phoneLocal: string;
-
-  @Column({
-    type: 'text',
-    name: 'phone_full_e164',
-    asExpression: 'phone_country_code || phone_local',
-    generatedType: 'STORED',
-  })
-  phoneFullE164: string;
+  phoneNumber: string;
 
   @Column({
     type: 'text',
