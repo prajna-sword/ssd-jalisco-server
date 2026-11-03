@@ -29,14 +29,16 @@ export class Payment {
   @Column({
     type: 'bigint',
     name: 'booking_id',
+    nullable: true
   })
   bookingId: string;
 
   @Column({
     type: 'bigint',
-    name: 'room_id',
+    name: 'multi_booking_xref_id',
+    nullable: true
   })
-  roomId: string;
+  multiBookingXrefId: string;
 
   @Column({
     type: 'money',

@@ -7,12 +7,15 @@ import { PaymentsService } from 'src/payments/payments.service';
 import { BookingPayload } from './dto/booking-payload.dto';
 import { Guest } from 'src/guests/entities/guest.entity';
 import { Payment } from 'src/payments/entities/payment.entity';
+import { MultiBookingXREF } from './entities/multi-booking-xref.entity';
 
 @Injectable()
 export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>, // 👈 Inject repository
+    @InjectRepository(MultiBookingXREF)
+    private readonly xrefRepository: Repository<MultiBookingXREF>, // 👈 Inject repository
     private readonly guestsService: GuestsService,
     private readonly paymentsService: PaymentsService
   ) { }
@@ -35,7 +38,7 @@ export class BookingsService {
       .getMany();
   }
 
-  async createBooking(bookingPayload: BookingPayload): Promise<Booking[] | null> {
+  async createBooking(bookingPayload: BookingPayload): Promise<Object> {
     console.log(bookingPayload);
 
     // save the guest info
@@ -57,12 +60,31 @@ export class BookingsService {
     // save the booking(s) info
     let savedBookings: Booking[] = [];
 
+    let roomIdCount = 0;
+    for (let roomId of bookingPayload.room.roomIds) {
+      if (roomId != null) {
+        roomIdCount++;
+      }
+    }
+
+    // Create Multibooking if more than 1 room
+    let savedXref: MultiBookingXREF | null = null;
+    if (roomIdCount > 1) {
+      const multiBookingXref = new MultiBookingXREF();
+      multiBookingXref.clientPageId = '13'; //TODO
+      multiBookingXref.guestId = savedGuest.guestId;
+      savedXref = await this.xrefRepository.save(multiBookingXref);
+    }
+
     // multiple booked rooms at the same time will have 1 stripe payment,
     // correlated with multiple bookings and payments
     // our system will treat it like the rooms were booked separately by the same guest
     for (let roomId of bookingPayload.room.roomIds) {
       if (roomId != null) {
         const booking = new Booking();
+        if (savedXref) {
+          booking.multiBookingXrefId = savedXref.multiBookingXrefId;
+        }
         booking.checkInDate = bookingPayload.room.checkInDate;
         booking.checkOutDate = bookingPayload.room.checkOutDate;
         booking.numberOfGuests = bookingPayload.guest.numberOfGuests;
@@ -70,24 +92,31 @@ export class BookingsService {
         booking.checkInTime = '14:30:15';
         booking.checkOutTime = '14:30:15';
         booking.guestId = savedGuest.guestId;
-        console.log(booking);
         let savedBooking = await this.bookingRepository.save(booking);
         savedBookings.push(savedBooking);
-        // save the payment info
-        const payment = new Payment();
-        payment.bookingId = savedBooking.bookingId;
-        payment.roomId = savedBooking.roomId;
-        payment.guestId = savedGuest.guestId;
-        payment.paymentAmount = bookingPayload.currentTotal as any;
-        payment.paymentType = 'hotel_booking';
-        payment.isRefunded = false;
-        payment.stripePaymentId = bookingPayload.stripePaymentIntentId;
-        let savedPayment = await this.paymentsService.save(payment);
       }
     }
 
-    // return the booking(s)
-    return savedBookings;
+    // save the payment info
+    const payment = new Payment();
+    if (savedXref) {
+      payment.multiBookingXrefId = savedXref.multiBookingXrefId;
+    } else {
+      payment.bookingId = savedBookings[0].bookingId;
+    }
+    payment.guestId = savedGuest.guestId;
+    payment.paymentAmount = bookingPayload.currentTotal as any; // TODO make sure its the server calculated total
+    payment.paymentType = 'hotel_booking';
+    payment.isRefunded = false;
+    payment.stripePaymentId = bookingPayload.stripePaymentIntentId;
+    let savedPayment = await this.paymentsService.save(payment);
+
+    const referenceId = savedXref ? savedXref.multiBookingUUID : savedBookings[0].bookingUUID;
+    console.log(referenceId);
+
+    // throw new Error('Stop booking so it wont redirect and you can resubmit over and over');
+    // return the referenceID to route to confirmation screen
+    return {referenceId};
   }
 
 }

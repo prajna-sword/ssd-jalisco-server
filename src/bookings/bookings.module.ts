@@ -5,11 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
 import { GuestsModule } from 'src/guests/guests.module';
 import { PaymentsModule } from 'src/payments/payments.module';
+import { MultiBookingXREF } from './entities/multi-booking-xref.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking]),
-    GuestsModule, PaymentsModule],
+  imports: [
+    TypeOrmModule.forFeature([Booking, MultiBookingXREF]), 
+    GuestsModule, 
+    PaymentsModule],
   controllers: [BookingsController],
   providers: [BookingsService],
 })
