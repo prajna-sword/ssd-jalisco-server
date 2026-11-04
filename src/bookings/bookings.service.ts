@@ -140,6 +140,7 @@ export class BookingsService {
         .where('booking.multiBookingXrefId = :xrefId', { xrefId })
         .getMany();
       payment = await this.paymentsService.findByXrefId(xrefId);
+      console.log(payment);
       guest = await this.guestsService.findOne(matchingXref.guestId);
       if (bookings && bookings.length > 0) {
         for (let booking of bookings) {
@@ -156,7 +157,13 @@ export class BookingsService {
         .where('booking.bookingUUID = :referenceId', { referenceId })
         .getOne();
       if (matchingBooking) {
-        payment = await this.paymentsService.findByBookingId(matchingBooking?.bookingId as string);
+        if (matchingBooking.multiBookingXrefId) {
+          let matchingXref = await this.xrefRepository.findOneBy({ multiBookingXrefId: matchingBooking.multiBookingXrefId });
+          payment = await this.paymentsService.findByXrefId(matchingXref?.multiBookingXrefId as string);
+        } else {
+          payment = await this.paymentsService.findByBookingId(matchingBooking?.bookingId as string);
+        }
+        console.log(payment);
         guest = await this.guestsService.findOne(matchingBooking.guestId);
         let room = await this.roomsService.findOne(matchingBooking.roomId);
         clientPage = await this.clientPagesService.findOne(room?.clientPageId as string);
