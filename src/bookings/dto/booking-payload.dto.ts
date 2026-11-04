@@ -26,6 +26,7 @@ export interface BookingPayload {
   room: RoomSelection;
   guest: GuestDetails;
   currentTotal: number;
-  stripePaymentIntentId: string
+  stripePaymentIntentId: string;
+  clientPageId: string;
   paymentComplete: boolean;
 }

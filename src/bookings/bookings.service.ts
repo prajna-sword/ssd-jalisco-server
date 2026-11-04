@@ -76,7 +76,7 @@ export class BookingsService {
     let savedXref: MultiBookingXREF | null = null;
     if (roomIdCount > 1) {
       const multiBookingXref = new MultiBookingXREF();
-      multiBookingXref.clientPageId = '13'; //TODO
+      multiBookingXref.clientPageId = bookingPayload.clientPageId;
       multiBookingXref.guestId = savedGuest.guestId;
       savedXref = await this.xrefRepository.save(multiBookingXref);
     }
@@ -90,6 +90,7 @@ export class BookingsService {
         if (savedXref) {
           booking.multiBookingXrefId = savedXref.multiBookingXrefId;
         }
+        booking.clientPageId = bookingPayload.clientPageId;
         booking.checkInDate = bookingPayload.room.checkInDate;
         booking.checkOutDate = bookingPayload.room.checkOutDate;
         booking.numberOfGuests = bookingPayload.guest.numberOfGuests;
@@ -124,6 +125,27 @@ export class BookingsService {
     return { referenceId };
   }
 
+  async doesBookingExist(referenceId: string): Promise<Object> {
+    let clientRouteSegment;
+    let matchingXref = await this.xrefRepository.createQueryBuilder('xref')
+      .where('xref.multiBookingUUID = :referenceId', { referenceId })
+      .getOne();
+    if (matchingXref) {
+      let clientPage = await this.clientPagesService.findOne(matchingXref.clientPageId);
+      clientRouteSegment = clientPage?.businessNameRouteSegment;
+    } else {
+      let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
+        .where('booking.bookingUUID = :referenceId', { referenceId })
+        .getOne();
+      if (matchingBooking) {
+        let clientPage = await this.clientPagesService.findOne(matchingBooking?.clientPageId as string);
+        clientRouteSegment = clientPage?.businessNameRouteSegment;
+      }
+    }
+    return { clientRouteSegment };
+  }
+
+  // TODO -- refactor to reduce complexity and latency
   async lookupBooking(referenceId: string): Promise<BookingLookupPayload> {
     let matchingXref = await this.xrefRepository.createQueryBuilder('xref')
       .where('xref.multiBookingUUID = :referenceId', { referenceId })

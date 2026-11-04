@@ -16,6 +16,11 @@ export class BookingsController {
     return this.bookingsService.lookupBooking(referenceId);
   }
 
+  @Get('lookup/check')
+  doesBookimgExists(@Query('referenceId') referenceId: string) {
+    return this.bookingsService.doesBookingExist(referenceId);
+  }
+
   @Get()
   findAll() {
     return this.bookingsService.findAll();

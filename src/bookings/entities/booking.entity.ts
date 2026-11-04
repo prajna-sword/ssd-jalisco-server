@@ -13,6 +13,9 @@ export class Booking {
   @PrimaryGeneratedColumn({ type: 'bigint', name: 'booking_id' })
   bookingId: string; // bigint is handled as a string in JS/TS to prevent precision loss
 
+  @Column({ type: 'bigint', name: 'client_page_id' })
+  clientPageId: string;
+
   @Column({ type: 'bigint', name: 'guest_id' })
   guestId: string;
 
