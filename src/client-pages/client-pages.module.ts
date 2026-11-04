@@ -8,5 +8,6 @@ import { ClientPage } from './entities/client-page.entity';
   imports: [TypeOrmModule.forFeature([ClientPage])],
   controllers: [ClientPagesController],
   providers: [ClientPagesService],
+  exports: [ClientPagesService]
 })
 export class ClientPagesModule { }

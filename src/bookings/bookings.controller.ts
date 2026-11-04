@@ -11,6 +11,11 @@ export class BookingsController {
     return this.bookingsService.createBooking(bookingPayload);
   }
 
+  @Get('lookup')
+  bookingUUIDLookup(@Query('referenceId') referenceId: string) {
+    return this.bookingsService.lookupBooking(referenceId);
+  }
+
   @Get()
   findAll() {
     return this.bookingsService.findAll();

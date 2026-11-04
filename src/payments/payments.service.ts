@@ -1,6 +1,4 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
 import { Repository } from 'typeorm';
@@ -36,6 +34,18 @@ export class PaymentsService {
 
   async save(payment: Payment): Promise<Payment | null> {
     return await this.paymentRepository.save(payment);
+  }
+
+  async findByXrefId(xrefId: string): Promise<Payment | null> {
+    return await this.paymentRepository.createQueryBuilder('payment')
+      .where('payment.multiBookingXrefId = :xrefId', { xrefId })
+      .getOne();
+  }
+
+  async findByBookingId(bookingId: string): Promise<Payment | null> {
+    return await this.paymentRepository.createQueryBuilder('payment')
+      .where('payment.bookingId = :bookingId', { bookingId })
+      .getOne();
   }
 
   async generateCheckoutIntent(bookingDetails: { nights: number; roomIds: string[] }) {
