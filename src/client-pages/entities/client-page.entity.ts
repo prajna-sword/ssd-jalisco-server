@@ -60,6 +60,20 @@ export class ClientPage {
   @Column({ name: 'hotel_amenities_list', type: 'text', array: true, nullable: true })
   hotelAmenitiesList: string[];
 
+  @Column({
+    type: 'boolean',
+    name: 'allow_booking_cancellations',
+    nullable: true,
+    default: false,
+  })
+  allowBookingCancellations: boolean;
+
+  @Column({ name: 'cancellation_flat_rate', type: 'numeric', precision: 10, scale: 2, nullable: true })
+  cancellationFlatRate: string;
+
+  @Column({ name: 'cancellation_percent_rate', type: 'smallint', nullable: true})
+  cancellationPercentRate: number;
+
   @CreateDateColumn({ type: 'timestamp', name: 'created_timestamp' })
   createdTimestamp: Date;
 
