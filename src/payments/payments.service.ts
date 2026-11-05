@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { Room } from 'src/rooms/entities/room.entity';
 
+
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
@@ -48,6 +49,8 @@ export class PaymentsService {
       .getOne();
   }
 
+  // TODO -- verify that the current calculation method is safe since the amount of 
+  // days will have to be passed from the UI and it could be mutable?
   async generateCheckoutIntent(bookingDetails: { nights: number; roomIds: string[] }) {
     try {
       if (this.rooms.length === 0) {

@@ -43,6 +43,14 @@ export class Booking {
   @Column({ type: 'time', name: 'check_out_time', nullable: true })
   checkOutTime: string | null;
 
+  // Necessary because client can change room rate
+  // We need the booked rate to calculate partial refunds of multi-bookings
+  @Column({
+    type: 'money',
+    name: 'booked_rate',
+  })
+  bookedRate: string;
+
   @Column({ type: 'uuid', name: 'booking_uuid' })
   @Generated('uuid')
   bookingUUID: string;

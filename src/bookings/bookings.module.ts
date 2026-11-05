@@ -19,5 +19,6 @@ import { ClientPagesModule } from 'src/client-pages/client-pages.module';
     PaymentsModule],
   controllers: [BookingsController],
   providers: [BookingsService],
+  exports: [BookingsService]
 })
 export class BookingsModule { }

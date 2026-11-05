@@ -3,7 +3,6 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
-import { RoomsService } from 'src/rooms/rooms.service';
 import { RoomsModule } from 'src/rooms/rooms.module';
 
 @Module({
@@ -12,4 +11,4 @@ import { RoomsModule } from 'src/rooms/rooms.module';
   providers: [PaymentsService],
   exports: [PaymentsService]
 })
-export class PaymentsModule {}
+export class PaymentsModule { }
