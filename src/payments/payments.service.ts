@@ -6,6 +6,8 @@ import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
 import { RoomsService } from 'src/rooms/rooms.service';
 import { Room } from 'src/rooms/entities/room.entity';
+import { CreateIntentDto } from './dto/create-payment.dto';
+import { differenceInCalendarDays } from 'date-fns';
 
 
 @Injectable()
@@ -55,6 +57,7 @@ export class PaymentsService {
       .getOne();
       if (savedPayment) {
         savedPayment.isRefunded = true;
+        savedPayment.refundTimestamp = new Date();
         savedPayment.refundedAmount = refundAmount as unknown as string;
         this.paymentRepository.save(savedPayment);
       }
@@ -62,7 +65,9 @@ export class PaymentsService {
 
   // TODO -- verify that the current calculation method is safe since the amount of 
   // days will have to be passed from the UI and it could be mutable?
-  async generateCheckoutIntent(bookingDetails: { nights: number; roomIds: string[] }) {
+  async generateCheckoutIntent(bookingDetails: CreateIntentDto) {
+    const nights = differenceInCalendarDays(bookingDetails.checkOutDate, bookingDetails.checkInDate);
+
     try {
       if (this.rooms.length === 0) {
         this.rooms = await this.roomService.findAll();
@@ -77,7 +82,7 @@ export class PaymentsService {
       }
       let totalAmount = 0;
       bookedRooms.forEach(room => {
-        totalAmount += (this.moneyToNumber(room.nightlyRate) * bookingDetails.nights)
+        totalAmount += (this.moneyToNumber(room.nightlyRate) * nights)
       });
 
       // 2. Stripe expects integers in the smallest currency unit (cents/sub-currency)
@@ -104,7 +109,7 @@ export class PaymentsService {
         metadata: {
           hotelLocation: 'Jalisco_Mexico',
           roomIds: roomIdString,
-          totalNights: bookingDetails.nights.toString(),
+          totalNights: nights.toString(),
         },
       });
 

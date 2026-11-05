@@ -200,6 +200,7 @@ export class BookingsService {
 
   async cancelBooking(booking: Booking): Promise<void> {
     booking.isCanceled = true;
+    booking.cancellationTimestamp = new Date();
     this.bookingRepository.save(booking);
   }
 }

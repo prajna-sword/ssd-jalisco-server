@@ -66,6 +66,9 @@ export class Payment {
   })
   refundedAmount: string | null;
 
+  @Column({ type: 'timestamptz', name: 'refund_timestamp', nullable: true })
+  refundTimestamp: Date;
+
   @CreateDateColumn({
     type: 'timestamp',
     name: 'transaction_timestamp',

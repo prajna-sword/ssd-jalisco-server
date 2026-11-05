@@ -10,7 +10,6 @@ export class RefundController {
   async createRefund(
     @Body() body: refundPaymentDto.RefundPaymentPayload
   ) {
-    console.log(body);
     return await this.refundService.refundPayment(body);
   }
 }

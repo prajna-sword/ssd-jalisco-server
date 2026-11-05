@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { RefundPaymentPayload } from './dto/refund-payment.dto';
 import { ClientPagesService } from 'src/client-pages/client-pages.service';
 import { BookingsService } from 'src/bookings/bookings.service';
-import { differenceInDays, differenceInMilliseconds } from 'date-fns';
+import { differenceInCalendarDays, differenceInMilliseconds } from 'date-fns';
 import { PaymentsService } from './payments.service';
 import { Booking } from 'src/bookings/entities/booking.entity';
 
@@ -23,53 +23,45 @@ export class RefundService {
     });
   }
 
-  // TODO -- refactor so that full refund isn't applied to one booking of multi-booking
   async refundPayment(payload: RefundPaymentPayload): Promise<any> {
     console.log(payload);
-    // check if refund is within first 5 days 
-    // use first bookingId since they will all be within milliseconds
-    // if within first 5 days run the refund without an amount and stripe refunds total
     const savedBookingOne = await this.bookingsService.findOne(payload.bookingIds[0]);
     const now = new Date();
     const millisecondsSinceBooking = differenceInMilliseconds(now, savedBookingOne?.bookingTimestamp as Date);
     const exactHours = millisecondsSinceBooking / 360000;
     const fiveDaysInHours = 24 * 5;
-    if (exactHours < fiveDaysInHours) {
-      return await this.stripe.refunds.create({
-        payment_intent: payload.paymentIntentId,
-      });
-    }
+    const isWithinFiveDays = exactHours < fiveDaysInHours;
 
     let refundTotal = 0;
     let refundedBookings: Booking[] = [];
-    for (const [index, bookingId] of payload.bookingIds) {
-      console.log(index);
-      console.log(bookingId)
+    for (let i = 0; i < payload.bookingIds.length; i++) {
       let savedBooking;
-      if (index === '0') {
+      if (i === 0) {
         savedBooking = savedBookingOne;
       } else {
-        savedBooking = await this.bookingsService.findOne(bookingId);
+        savedBooking = await this.bookingsService.findOne(payload.bookingIds[i]);
       }
       refundedBookings.push(savedBooking);
-      let diff = differenceInDays(savedBooking?.checkInDate as Date, savedBooking?.checkOutDate as Date);
+      let diff = differenceInCalendarDays(savedBooking?.checkOutDate as Date, savedBooking?.checkInDate as Date);
       refundTotal += diff * this.moneyToNumber(savedBooking?.bookedRate as string);
     }
 
-    const clientPage = await this.clientPagesService.findOne(payload.clientPageId);
+    if (!isWithinFiveDays) {
+      const clientPage = await this.clientPagesService.findOne(payload.clientPageId);
 
-    let flatRateDeduction = 0;
-    let percentRateDeduction = 0;
+      let flatRateDeduction = 0;
+      let percentRateDeduction = 0;
 
-    if (clientPage?.cancellationFlatRate) {
-      flatRateDeduction = this.moneyToNumber(clientPage.cancellationFlatRate);
+      if (clientPage?.cancellationFlatRate) {
+        flatRateDeduction = this.moneyToNumber(clientPage.cancellationFlatRate);
+      }
+
+      if (clientPage?.cancellationPercentRate) {
+        percentRateDeduction = refundTotal * clientPage.cancellationPercentRate;
+      }
+
+      refundTotal = (refundTotal - (flatRateDeduction + percentRateDeduction));
     }
-
-    if (clientPage?.cancellationPercentRate) {
-      percentRateDeduction = refundTotal * clientPage.cancellationPercentRate;
-    }
-
-    refundTotal = (refundTotal - (flatRateDeduction + percentRateDeduction));
 
     // TOOD -- ERROR HANDLING + LOGGING
     if (refundTotal !== this.moneyToNumber(payload.refundAmount)) {
@@ -81,18 +73,15 @@ export class RefundService {
       console.log('Computed Refund Amount is less than or equal to zero.')
     }
 
-    console.log(refundTotal);
-
+    // TODO - check response status
     const stripeResponse = await this.stripe.refunds.create({
       payment_intent: payload.paymentIntentId,
       amount: refundTotal * 100 // total in cents
     });
-    
-    // TODO - check response status
 
     await this.paymentsService.refundPayment(payload.paymentIntentId, refundTotal);
-    
-    for (let booking of refundedBookings){
+
+    for (let booking of refundedBookings) {
       await this.bookingsService.cancelBooking(booking);
     }
 

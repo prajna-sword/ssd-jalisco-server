@@ -37,6 +37,9 @@ export class Booking {
   @Column({ type: 'boolean', name: 'is_canceled', default: false })
   isCanceled: boolean;
 
+  @Column({ type: 'timestamptz', name: 'cancellation_timestamp', nullable: true })
+  cancellationTimestamp: Date;
+
   @Column({ type: 'time', name: 'check_in_time' })
   checkInTime: string; // Time types are typically handled as string ("HH:MM:SS")
 
