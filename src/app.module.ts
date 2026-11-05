@@ -13,6 +13,7 @@ import { GuestNotificationsModule } from './guest-notifications/guest-notificati
 import { SatInvoicesModule } from './sat-invoices/sat-invoices.module';
 import { ConfigModule } from '@nestjs/config';
 import { ClientPagesModule } from './client-pages/client-pages.module';
+import { RefundModule } from './payments/refund.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -31,6 +32,7 @@ import { ClientPagesModule } from './client-pages/client-pages.module';
     HotelStatsModule,
     GuestNotificationsModule,
     SatInvoicesModule,
+    RefundModule,
     ConfigModule.forRoot({
       isGlobal: true, // Makes the module available everywhere
     }),

@@ -9,4 +9,4 @@ import { RefundController } from './refund.controller';
   controllers: [RefundController],
   providers: [RefundService]
 })
-export class PaymentsModule { }
+export class RefundModule { }

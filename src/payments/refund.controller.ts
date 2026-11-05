@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { RefundPaymentPayload } from './dto/refund-payment.dto';
+import * as refundPaymentDto from './dto/refund-payment.dto';
 import { RefundService } from './refund.service';
 
 @Controller('payments')
@@ -8,8 +8,9 @@ export class RefundController {
 
   @Post('create-refund') // Enforces POST /payment/create-refund
   async createRefund(
-    @Body() body: RefundPaymentPayload
+    @Body() body: refundPaymentDto.RefundPaymentPayload
   ) {
+    console.log(body);
     return await this.refundService.refundPayment(body);
   }
 }

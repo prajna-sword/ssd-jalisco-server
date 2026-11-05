@@ -20,7 +20,9 @@ export class RefundService {
     });
   }
 
+  // TODO -- refactor so that full refund isn't applied to one booking of multi-booking
   async refundPayment(payload: RefundPaymentPayload): Promise<any> {
+    console.log(payload);
     // check if refund is within first 5 days 
     // use first bookingId since they will all be within milliseconds
     // if within first 5 days run the refund without an amount and stripe refunds total
@@ -65,7 +67,7 @@ export class RefundService {
     refundTotal = (refundTotal - (flatRateDeduction + percentRateDeduction));
 
     // TOOD -- ERROR HANDLING + LOGGING
-    if (refundTotal !== payload.refundAmount) {
+    if (refundTotal !== this.moneyToNumber(payload.refundAmount)) {
       console.log('Expected refund total does not match computed total.');
     }
 
@@ -74,9 +76,11 @@ export class RefundService {
       console.log('Computed Refund Amount is less than or equal to zero.')
     }
 
+    console.log(refundTotal);
+
     return await this.stripe.refunds.create({
       payment_intent: payload.paymentIntentId,
-      amount: payload.refundAmount
+      amount: refundTotal * 100 // total in cents
     });
   }
 
