@@ -49,6 +49,17 @@ export class PaymentsService {
       .getOne();
   }
 
+  async refundPayment(paymentIntentId: string, refundAmount: number): Promise<void> {
+    const savedPayment = await this.paymentRepository.createQueryBuilder('payment')
+      .where('payment.stripePaymentId = :paymentIntentId', { paymentIntentId })
+      .getOne();
+      if (savedPayment) {
+        savedPayment.isRefunded = true;
+        savedPayment.refundedAmount = refundAmount as unknown as string;
+        this.paymentRepository.save(savedPayment);
+      }
+  }
+
   // TODO -- verify that the current calculation method is safe since the amount of 
   // days will have to be passed from the UI and it could be mutable?
   async generateCheckoutIntent(bookingDetails: { nights: number; roomIds: string[] }) {

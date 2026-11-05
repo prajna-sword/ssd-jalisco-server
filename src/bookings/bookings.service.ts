@@ -197,4 +197,9 @@ export class BookingsService {
       clientPage
     }
   }
+
+  async cancelBooking(booking: Booking): Promise<void> {
+    booking.isCanceled = true;
+    this.bookingRepository.save(booking);
+  }
 }

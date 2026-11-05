@@ -5,6 +5,8 @@ import { RefundPaymentPayload } from './dto/refund-payment.dto';
 import { ClientPagesService } from 'src/client-pages/client-pages.service';
 import { BookingsService } from 'src/bookings/bookings.service';
 import { differenceInDays, differenceInMilliseconds } from 'date-fns';
+import { PaymentsService } from './payments.service';
+import { Booking } from 'src/bookings/entities/booking.entity';
 
 @Injectable()
 export class RefundService {
@@ -13,7 +15,8 @@ export class RefundService {
   constructor(
     private configService: ConfigService,
     private clientPagesService: ClientPagesService,
-    private bookingsService: BookingsService
+    private bookingsService: BookingsService,
+    private paymentsService: PaymentsService
   ) {
     this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY') as any, {
       apiVersion: '2026-08-26.dahlia' as any, // Standard modern Stripe API typing fallback
@@ -38,6 +41,7 @@ export class RefundService {
     }
 
     let refundTotal = 0;
+    let refundedBookings: Booking[] = [];
     for (const [index, bookingId] of payload.bookingIds) {
       console.log(index);
       console.log(bookingId)
@@ -47,6 +51,7 @@ export class RefundService {
       } else {
         savedBooking = await this.bookingsService.findOne(bookingId);
       }
+      refundedBookings.push(savedBooking);
       let diff = differenceInDays(savedBooking?.checkInDate as Date, savedBooking?.checkOutDate as Date);
       refundTotal += diff * this.moneyToNumber(savedBooking?.bookedRate as string);
     }
@@ -78,10 +83,20 @@ export class RefundService {
 
     console.log(refundTotal);
 
-    return await this.stripe.refunds.create({
+    const stripeResponse = await this.stripe.refunds.create({
       payment_intent: payload.paymentIntentId,
       amount: refundTotal * 100 // total in cents
     });
+    
+    // TODO - check response status
+
+    await this.paymentsService.refundPayment(payload.paymentIntentId, refundTotal);
+    
+    for (let booking of refundedBookings){
+      await this.bookingsService.cancelBooking(booking);
+    }
+
+    return stripeResponse;
   }
 
   moneyToNumber(moneyStr: string): number {
