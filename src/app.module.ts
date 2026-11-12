@@ -14,6 +14,7 @@ import { SatInvoicesModule } from './sat-invoices/sat-invoices.module';
 import { ConfigModule } from '@nestjs/config';
 import { ClientPagesModule } from './client-pages/client-pages.module';
 import { RefundModule } from './payments/refund.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -37,6 +38,7 @@ import { RefundModule } from './payments/refund.module';
       isGlobal: true, // Makes the module available everywhere
     }),
     ClientPagesModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
