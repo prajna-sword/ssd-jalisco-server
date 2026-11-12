@@ -1,11 +1,9 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  ManyToOne,
-  JoinColumn
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
 } from 'typeorm';
 // Assuming you have a Client entity defined elsewhere
 // import { Client } from '../../clients/entities/client.entity'; 
@@ -62,11 +60,11 @@ export class ClientPage {
 
   @Column({
     type: 'boolean',
-    name: 'allow_booking_cancellations',
+    name: 'allow_booking_cancellation',
     nullable: true,
     default: false,
   })
-  allowBookingCancellations: boolean;
+  allowBookingCancellation: boolean;
 
   @Column({ name: 'cancellation_flat_rate', type: 'numeric', precision: 10, scale: 2, nullable: true })
   cancellationFlatRate: string;
