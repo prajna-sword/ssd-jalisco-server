@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { BookingsService } from './bookings.service';
-import { BookingsController } from './bookings.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Booking } from './entities/booking.entity';
-import { GuestsModule } from 'src/guests/guests.module';
+import { ClientPagesModule } from 'src/client/client-pages/client-pages.module';
+import { GuestsModule } from 'src/lodging/guests/guests.module';
+import { RoomsModule } from 'src/lodging/rooms/rooms.module';
 import { PaymentsModule } from 'src/payments/payments.module';
+import { BookingsController } from './bookings.controller';
+import { BookingsService } from './bookings.service';
+import { Booking } from './entities/booking.entity';
 import { MultiBookingXREF } from './entities/multi-booking-xref.entity';
-import { RoomsModule } from 'src/rooms/rooms.module';
-import { ClientPagesModule } from 'src/client-pages/client-pages.module';
 
 
 @Module({

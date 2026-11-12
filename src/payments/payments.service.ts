@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Payment } from './entities/payment.entity';
-import { Repository } from 'typeorm';
-import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { RoomsService } from 'src/rooms/rooms.service';
-import { Room } from 'src/rooms/entities/room.entity';
-import { CreateIntentDto } from './dto/create-payment.dto';
+import { InjectRepository } from '@nestjs/typeorm';
 import { differenceInCalendarDays } from 'date-fns';
+import { Room } from 'src/lodging/rooms/entities/room.entity';
+import { RoomsService } from 'src/lodging/rooms/rooms.service';
+import Stripe from 'stripe';
+import { Repository } from 'typeorm';
+import { CreateIntentDto } from './dto/create-payment.dto';
+import { Payment } from './entities/payment.entity';
 
 
 @Injectable()

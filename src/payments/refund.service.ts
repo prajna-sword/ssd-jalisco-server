@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { RefundPaymentPayload } from './dto/refund-payment.dto';
-import { ClientPagesService } from 'src/client-pages/client-pages.service';
-import { BookingsService } from 'src/bookings/bookings.service';
 import { differenceInCalendarDays, differenceInMilliseconds } from 'date-fns';
+import { ClientPagesService } from 'src/client/client-pages/client-pages.service';
+import { BookingsService } from 'src/lodging/bookings/bookings.service';
+import { Booking } from 'src/lodging/bookings/entities/booking.entity';
+import Stripe from 'stripe';
+import { RefundPaymentPayload } from './dto/refund-payment.dto';
 import { PaymentsService } from './payments.service';
-import { Booking } from 'src/bookings/entities/booking.entity';
 
 @Injectable()
 export class RefundService {

@@ -1,20 +1,16 @@
 import { Module } from '@nestjs/common';
 
-import { BookingsModule } from './bookings/bookings.module';
-import { EventsModule } from './events/events.module';
-import { RoomsModule } from './rooms/rooms.module';
-import { GuestsModule } from './guests/guests.module';
-import { PaymentsModule } from './payments/payments.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { GuestInquiriesModule } from './guest-inquiries/guest-inquiries.module';
-import { EmployeesModule } from './employees/employees.module';
-import { HotelStatsModule } from './hotel-stats/hotel-stats.module';
-import { GuestNotificationsModule } from './guest-notifications/guest-notifications.module';
-import { SatInvoicesModule } from './sat-invoices/sat-invoices.module';
 import { ConfigModule } from '@nestjs/config';
-import { ClientPagesModule } from './client-pages/client-pages.module';
-import { RefundModule } from './payments/refund.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { ClientPagesModule } from './client/client-pages/client-pages.module';
+import { EmployeesModule } from './client/employees/employees.module';
+import { EventsModule } from './events/events.module';
+import { BookingsModule } from './lodging/bookings/bookings.module';
+import { GuestsModule } from './lodging/guests/guests.module';
+import { RoomsModule } from './lodging/rooms/rooms.module';
+import { PaymentsModule } from './payments/payments.module';
+import { RefundModule } from './payments/refund.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -28,11 +24,7 @@ import { AuthModule } from './auth/auth.module';
       autoLoadEntities: true,
       synchronize: true, // Remember to turn this OFF in production!
     }),
-    GuestInquiriesModule,
     EmployeesModule,
-    HotelStatsModule,
-    GuestNotificationsModule,
-    SatInvoicesModule,
     RefundModule,
     ConfigModule.forRoot({
       isGlobal: true, // Makes the module available everywhere

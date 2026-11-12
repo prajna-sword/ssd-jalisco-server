@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { Booking } from './entities/booking.entity';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GuestsService } from 'src/guests/guests.service';
-import { PaymentsService } from 'src/payments/payments.service';
-import { BookingPayload } from './dto/booking-payload.dto';
-import { Guest } from 'src/guests/entities/guest.entity';
+import { ClientPagesService } from 'src/client/client-pages/client-pages.service';
+import { Guest } from 'src/lodging/guests/entities/guest.entity';
+import { GuestsService } from 'src/lodging/guests/guests.service';
+import { RoomsService } from 'src/lodging/rooms/rooms.service';
 import { Payment } from 'src/payments/entities/payment.entity';
-import { MultiBookingXREF } from './entities/multi-booking-xref.entity';
+import { PaymentsService } from 'src/payments/payments.service';
+import { Repository } from 'typeorm';
 import { BookedRoom, BookingDetails, BookingLookupPayload } from './dto/booking-lookup-payload.dto';
-import { RoomsService } from 'src/rooms/rooms.service';
-import { ClientPagesService } from 'src/client-pages/client-pages.service';
+import { BookingPayload } from './dto/booking-payload.dto';
+import { Booking } from './entities/booking.entity';
+import { MultiBookingXREF } from './entities/multi-booking-xref.entity';
 
 @Injectable()
 export class BookingsService {
