@@ -1,14 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { CreateRoomDto } from 'src/lodging/rooms/dto/create-room.dto';
+import { UpdateRoomDto } from 'src/lodging/rooms/dto/update-room.dto';
 import { RoomsService } from './rooms.service';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateRoomDto } from './dto/update-room.dto';
 
 @Controller('rooms')
 export class RoomsController {
-  constructor(private readonly roomsService: RoomsService) {}
+  constructor(private readonly roomsService: RoomsService) { }
 
   @Get()
   findAll() {
     return this.roomsService.findAll();
+  }
+
+  @Post()
+  async createRoom(
+    @Body() body: CreateRoomDto
+  ) {
+    return await this.roomsService.create(body);
+  }
+  
+  @Patch(':id')
+  updateClientPage(@Param('id') id: string,
+    @Body() payload: UpdateRoomDto) {
+    return this.roomsService.update(id, payload);
   }
 }

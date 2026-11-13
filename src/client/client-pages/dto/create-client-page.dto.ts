@@ -1,25 +1,30 @@
 export class CreateClientPageDto {
-      clientPageId: string;
-      clientId: string;
-      businessType: BusinessType;
-      cardTitle: string;
-      cardSubtitle: string;
-      cardDescription: string;
-      cardImageUrl: string;
-      cardImageAltText: string;
-      businessNameRouteSegment: string;
-      detailPageHeroTitle?: string;
-      detailPageHeroSubtitle?: string;
-      detailPageHeroImageUrl?: string;
-      detailPageBusinessDescription?: string;
-      hotelEstimatedRateLow?: string;
-      hotelEstimatedRateHigh?: string;
-      hotelAmenitiesList?: string[];
-      allowBookingCancellations: boolean;
-      cancellationFlatRate: string;
-      cancellationPercentRate: number;
-      createdTimestamp: string;
-      updatedTimestamp: string;
+  clientPageId: string;
+  clientId: string;
+  businessType: string;
+  businessNameRouteSegment: string;
+  displayPage: boolean;
+  businessName: string | null;
+  shortDescription: string | null;
+  searchDisplayImageUrl: string | null;
+  searchDisplayAddress: string | null;
+  searchDisplayPlaceId: string | null;
+  searchDisplayCoords: string | null;
+  detailPageHeroImageUrl: string | null;
+  detailPageAdditionalImageUrls: string[] | null;
+  detailPageBusinessDescription: string | null;
+  amenitiesList: string[] | null;
+  rulesList: string[] | null;
+  customRulesList: string[] | null;
+  checkInWindow: string | null;
+  checkOutWindow: string | null;
+  safetyFeatures: string[] | null;
+  safetyNotes: string | null;
+  bookingCancellationPolicy: string | null;
+  allowDeferredPayments: boolean | null;
+  allowMultiBookings: boolean | null;
+  createdTimestamp: Date;
+  updatedTimestamp: Date;
 }
 
 export enum BusinessType {

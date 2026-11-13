@@ -3,83 +3,95 @@ import {
   CreateDateColumn,
   Entity,
   PrimaryGeneratedColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
 } from 'typeorm';
-// Assuming you have a Client entity defined elsewhere
-// import { Client } from '../../clients/entities/client.entity'; 
 
-@Entity({ name: 'client_pages' })
+
+@Entity('client_pages')
 export class ClientPage {
-  @PrimaryGeneratedColumn({ type: 'bigint', name: 'client_page_id' })
-  clientPageId: string; // bigint is returned as a string in JavaScript/TypeScript to prevent precision loss
+  @PrimaryGeneratedColumn('identity', { type: 'bigint', name: 'client_page_id' })
+  clientPageId: string;
 
   @Column({ type: 'bigint', name: 'client_id' })
   clientId: string;
 
   @Column({ type: 'text', name: 'business_type' })
-  businessType: 'H' | 'R' | 'E' | 'S' | 'L'; // Enforces your allowed comment types at the application level
-
-  @Column({ type: 'text', name: 'card_title' })
-  cardTitle: string;
-
-  @Column({ type: 'text', name: 'card_subtitle' })
-  cardSubtitle: string;
-
-  @Column({ type: 'text', name: 'card_description' })
-  cardDescription: string;
-
-  @Column({ type: 'text', name: 'card_image_url' })
-  cardImageUrl: string;
-
-  @Column({ type: 'text', name: 'card_image_alt_text' })
-  cardImageAltText: string;
+  businessType: string;
 
   @Column({ type: 'text', name: 'business_name_route_segment' })
   businessNameRouteSegment: string;
 
-  @Column({ name: 'detail_page_hero_title', type: 'text', nullable: true })
-  detailPageHeroTitle: string;
+  @Column({ type: 'boolean', name: 'display_page' })
+  displayPage: boolean;
 
-  @Column({ name: 'detail_page_hero_subtitle', type: 'text', nullable: true })
-  detailPageHeroSubtitle: string;
+  @Column({ type: 'text', name: 'business_name', nullable: true })
+  businessName: string | null;
 
-  @Column({ name: 'detail_page_hero_image_url', type: 'text', nullable: true })
-  detailPageHeroImageUrl: string;
+  @Column({ type: 'text', name: 'short_description', nullable: true })
+  shortDescription: string | null;
 
-  @Column({ name: 'detail_page_business_description', type: 'text', nullable: true })
-  detailPageBusinessDescription: string;
+  @Column({ type: 'text', name: 'search_display_image_url', nullable: true })
+  searchDisplayImageUrl: string | null;
 
-  @Column({ name: 'hotel_estimated_rate_low', type: 'numeric', precision: 10, scale: 2, nullable: true })
-  hotelEstimatedRateLow: string;
+  @Column({ type: 'text', name: 'search_display_address', nullable: true })
+  searchDisplayAddress: string | null;
 
-  @Column({ name: 'hotel_estimated_rate_high', type: 'numeric', precision: 10, scale: 2, nullable: true })
-  hotelEstimatedRateHigh: string;
+  @Column({ type: 'text', name: 'search_display_place_id', nullable: true })
+  searchDisplayPlaceId: string | null;
 
-  @Column({ name: 'hotel_amenities_list', type: 'text', array: true, nullable: true })
-  hotelAmenitiesList: string[];
+  @Column({ type: 'point', name: 'serach_display_coords', nullable: true })
+  searchDisplayCoords: string | null;
 
-  @Column({
-    type: 'boolean',
-    name: 'allow_booking_cancellation',
-    nullable: true,
-    default: false,
+  @Column({ type: 'text', name: 'detail_page_hero_image_url', nullable: true })
+  detailPageHeroImageUrl: string | null;
+
+  @Column({ type: 'text', array: true, name: 'detail_page_additional_image_urls', nullable: true })
+  detailPageAdditionalImageUrls: string[] | null;
+
+  @Column({ type: 'text', name: 'detail_page_business_description', nullable: true })
+  detailPageBusinessDescription: string | null;
+
+  @Column({ type: 'text', array: true, name: 'amenities_list', nullable: true })
+  amenitiesList: string[] | null;
+
+  @Column({ type: 'text', array: true, name: 'rules_list', nullable: true })
+  rulesList: string[] | null;
+
+  @Column({ type: 'text', array: true, name: 'custom_rules_list', nullable: true })
+  customRulesList: string[] | null;
+
+  @Column({ type: 'text', name: 'check_in_window', nullable: true })
+  checkInWindow: string | null;
+
+  @Column({ type: 'text', name: 'check_out_window', nullable: true })
+  checkOutWindow: string | null;
+
+  @Column({ type: 'text', array: true, name: 'safety_features', nullable: true })
+  safetyFeatures: string[] | null;
+
+  @Column({ type: 'text', name: 'safety_notes', nullable: true })
+  safetyNotes: string | null;
+
+  @Column({ type: 'text', name: 'booking_cancellation_policy', nullable: true })
+  bookingCancellationPolicy: string | null;
+
+  @Column({ type: 'boolean', name: 'allow_deferred_payments', nullable: true })
+  allowDeferredPayments: boolean | null;
+
+  @Column({ type: 'boolean', name: 'allow_multi_bookings', nullable: true })
+  allowMultiBookings: boolean | null;
+
+  @CreateDateColumn({
+    type: 'timestamp',
+    name: 'created_timestamp',
+    default: () => 'now()',
   })
-  allowBookingCancellation: boolean;
-
-  @Column({ name: 'cancellation_flat_rate', type: 'numeric', precision: 10, scale: 2, nullable: true })
-  cancellationFlatRate: string;
-
-  @Column({ name: 'cancellation_percent_rate', type: 'smallint', nullable: true})
-  cancellationPercentRate: number;
-
-  @CreateDateColumn({ type: 'timestamp', name: 'created_timestamp' })
   createdTimestamp: Date;
 
-  @UpdateDateColumn({ type: 'timestamp', name: 'updated_timestamp' })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    name: 'updated_timestamp',
+    default: () => 'now()',
+  })
   updatedTimestamp: Date;
-
-  // Optional: Uncomment this if you want to establish the relationship to your Clients entity
-  // @ManyToOne(() => Client, (client) => client.clientPages)
-  // @JoinColumn({ name: 'client_id' })
-  // client: Client;
 }
