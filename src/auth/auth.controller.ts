@@ -10,8 +10,6 @@ export class AuthController {
   async login(
     @Body() body: loginRequestDto.LoginPayload
   ) {
-    console.log(body);
-  
     return null;
   }
 }

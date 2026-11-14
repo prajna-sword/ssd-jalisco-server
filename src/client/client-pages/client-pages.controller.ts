@@ -14,7 +14,6 @@ export class ClientPagesController {
   @Patch(':id')
   updateClientPage(@Param('id') id: string,
     @Body() payload: updateClientPageDto.UpdateClientPageDto) {
-    console.log(payload);
     return this.clientPagesService.update(id, payload);
   }
 }

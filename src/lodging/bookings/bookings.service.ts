@@ -45,7 +45,6 @@ export class BookingsService {
 
   // TODO -- save weekly rate when weekly booking
   async createBooking(bookingPayload: BookingPayload): Promise<Object> {
-    console.log(bookingPayload);
 
     const guest = new Guest();
     guest.fullName = bookingPayload.guest.guestName;
@@ -90,7 +89,7 @@ export class BookingsService {
         booking.checkInDate = bookingPayload.room.checkInDate;
         booking.checkOutDate = bookingPayload.room.checkOutDate;
         booking.numberOfGuests = bookingPayload.guest.numberOfGuests;
-        booking.bookedRate = bookedRoom?.nightlyRate as string;
+        booking.bookedRate = bookedRoom?.nightlyRate as any;
         booking.roomId = roomId as any;
         booking.checkInTime = '14:30:15';
         booking.checkOutTime = '14:30:15';
@@ -155,14 +154,13 @@ export class BookingsService {
         .where('booking.multiBookingXrefId = :xrefId', { xrefId })
         .getMany();
       payment = await this.paymentsService.findByXrefId(xrefId);
-      console.log(payment);
       guest = await this.guestsService.findOne(matchingXref.guestId);
       if (bookings && bookings.length > 0) {
         for (let booking of bookings) {
           let room = await this.roomsService.findOne(booking.roomId);
           clientPage = await this.clientPagesService.findOne(room?.clientPageId as string);
           const bookingDetail: BookingDetails = booking as unknown as BookingDetails;
-          const bookedRoom: BookedRoom = room as BookedRoom;
+          const bookedRoom: BookedRoom = room as unknown as BookedRoom;
           bookingDetail.bookedRoom = bookedRoom;
           bookingDetails.push(bookingDetail);
         }
@@ -178,12 +176,11 @@ export class BookingsService {
         } else {
           payment = await this.paymentsService.findByBookingId(matchingBooking?.bookingId as string);
         }
-        console.log(payment);
         guest = await this.guestsService.findOne(matchingBooking.guestId);
         let room = await this.roomsService.findOne(matchingBooking.roomId);
         clientPage = await this.clientPagesService.findOne(room?.clientPageId as string);
         const bookingDetail: BookingDetails = matchingBooking as unknown as BookingDetails;
-        const bookedRoom: BookedRoom = room as BookedRoom;
+        const bookedRoom: BookedRoom = room as unknown as BookedRoom;
         bookingDetail.bookedRoom = bookedRoom;
         bookingDetails.push(bookingDetail);
       }

@@ -24,7 +24,6 @@ export class RefundService {
   }
 
   async refundPayment(payload: RefundPaymentPayload): Promise<any> {
-    console.log(payload);
     const savedBookingOne = await this.bookingsService.findOne(payload.bookingIds[0]);
     const now = new Date();
     const millisecondsSinceBooking = differenceInMilliseconds(now, savedBookingOne?.bookingTimestamp as Date);
@@ -52,13 +51,13 @@ export class RefundService {
       let flatRateDeduction = 0;
       let percentRateDeduction = 0;
 
-      if (clientPage?.cancellationFlatRate) {
-        flatRateDeduction = this.moneyToNumber(clientPage.cancellationFlatRate);
-      }
+      // if (clientPage?.cancellationFlatRate) {
+      //   flatRateDeduction = this.moneyToNumber(clientPage.cancellationFlatRate);
+      // }
 
-      if (clientPage?.cancellationPercentRate) {
-        percentRateDeduction = refundTotal * clientPage.cancellationPercentRate;
-      }
+      // if (clientPage?.cancellationPercentRate) {
+      //   percentRateDeduction = refundTotal * clientPage.cancellationPercentRate;
+      // }
 
       refundTotal = (refundTotal - (flatRateDeduction + percentRateDeduction));
     }
