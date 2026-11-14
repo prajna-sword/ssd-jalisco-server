@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { PaymentsService } from './payments.service';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import * as createPaymentDto from './dto/create-payment.dto';
+import { PaymentsService } from './payments.service';
 
 @Controller('payments')
 export class PaymentsController {
@@ -17,4 +17,11 @@ export class PaymentsController {
   ) {
     return await this.paymentsService.generateCheckoutIntent(body);
   }
+
+  // For manual capture feature
+  @Post('create-payment-qr')
+  async createQrSession(@Body() body: { amount: number; productName: string }) {
+    return this.paymentsService.createMexicoCheckoutSession(body.amount, body.productName);
+  }
+
 }

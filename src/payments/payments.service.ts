@@ -51,6 +51,39 @@ export class PaymentsService {
       .getOne();
   }
 
+  // Methods for the client manual payment capture feature
+  async createMexicoCheckoutSession(amountInCentavos: number, productName: string) {
+    const session = await this.stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'mxn',
+            product_data: {
+              name: productName,
+            },
+            // Stripe expects amounts in centavos (e.g., 15000 = $150.00 MXN)
+            unit_amount: amountInCentavos,
+          },
+          quantity: 1,
+        },
+      ],
+      payment_method_options: {
+        oxxo: {
+          expires_after_days: 3, // Optional: 1 to 7 days
+        },
+      },
+      success_url: 'https://yourdomain.com{CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://yourdomain.com',
+    });
+
+    return {
+      sessionId: session.id,
+      checkoutUrl: session.url,
+    };
+  }
+
+
   async refundPayment(paymentIntentId: string, refundAmount: number): Promise<void> {
     const savedPayment = await this.paymentRepository.createQueryBuilder('payment')
       .where('payment.stripePaymentId = :paymentIntentId', { paymentIntentId })
@@ -82,7 +115,7 @@ export class PaymentsService {
       }
       let totalAmount = 0;
       bookedRooms.forEach(room => {
-        totalAmount += (this.moneyToNumber(room.nightlyRate) * nights)
+        totalAmount += (room.nightlyRate as any * nights)
       });
 
       // 2. Stripe expects integers in the smallest currency unit (cents/sub-currency)
