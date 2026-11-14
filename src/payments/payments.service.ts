@@ -83,17 +83,60 @@ export class PaymentsService {
     };
   }
 
+  // 1. Create a Checkout Session that places a hold on funds
+  async createHotelHoldSession(holdAmountInCentavos: number, productName: string) {
+    const session = await this.stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'mxn',
+            product_data: {
+              name: productName,
+            },
+            unit_amount: holdAmountInCentavos,
+          },
+          quantity: 1,
+        },
+      ],
+      payment_intent_data: {
+        capture_method: 'manual', // Places a hold instead of charging immediately
+        metadata: {
+          productName,
+        },
+      },
+      success_url: 'https://yourdomain.com{CHECKOUT_SESSION_ID}',
+      cancel_url: 'https://yourdomain.com',
+    });
+
+    return {
+      sessionId: session.id,
+      checkoutUrl: session.url,
+    };
+  }
+
+  // 2. Capture funds at checkout (pass a smaller amount for partial capture)
+  async captureHold(paymentIntentId: string, finalAmountInCentavos?: number) {
+    return this.stripe.paymentIntents.capture(paymentIntentId, {
+      ...(finalAmountInCentavos && { amount_to_capture: finalAmountInCentavos }),
+    });
+  }
+
+  // 3. Release the hold completely if there are no incidentals
+  async releaseHold(paymentIntentId: string) {
+    return this.stripe.paymentIntents.cancel(paymentIntentId);
+  }
 
   async refundPayment(paymentIntentId: string, refundAmount: number): Promise<void> {
     const savedPayment = await this.paymentRepository.createQueryBuilder('payment')
       .where('payment.stripePaymentId = :paymentIntentId', { paymentIntentId })
       .getOne();
-      if (savedPayment) {
-        savedPayment.isRefunded = true;
-        savedPayment.refundTimestamp = new Date();
-        savedPayment.refundedAmount = refundAmount as unknown as string;
-        this.paymentRepository.save(savedPayment);
-      }
+    if (savedPayment) {
+      savedPayment.isRefunded = true;
+      savedPayment.refundTimestamp = new Date();
+      savedPayment.refundedAmount = refundAmount as unknown as string;
+      this.paymentRepository.save(savedPayment);
+    }
   }
 
   // TODO -- verify that the current calculation method is safe since the amount of 

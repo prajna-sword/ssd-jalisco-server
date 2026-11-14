@@ -4,7 +4,9 @@ import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+  });
 
   // Increase payload size limit to fix PayloadTooLargeError
   app.use(json({ limit: '50mb' }));
