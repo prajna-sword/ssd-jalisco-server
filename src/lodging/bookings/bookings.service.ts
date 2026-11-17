@@ -9,7 +9,7 @@ import { Payment } from 'src/payments/entities/payment.entity';
 import { PaymentsService } from 'src/payments/payments.service';
 import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
 import { Repository } from 'typeorm';
-import { BookingDetails, BookingLookupPayload } from './dto/booking-lookup-payload.dto';
+import { BookingLookupPayload } from './dto/booking-lookup-payload.dto';
 import { BookingPayload } from './dto/booking-payload.dto';
 import { Booking } from './entities/booking.entity';
 
@@ -81,6 +81,7 @@ export class BookingsService {
         bookedRoom.bookingId = savedBooking.bookingId;
         bookedRoom.guestId = savedGuest.guestId;
         bookedRoom.clientPageId = bookingPayload.clientPageId;
+        bookedRoom.roomId = matchingRoom.roomId;
         bookedRoom.checkInDate = roomSelection.checkInDate as any;
         bookedRoom.checkOutDate = roomSelection.checkOutDate as any;
         bookedRoom.adultGuests = roomSelection.guestCount.adults;
@@ -124,26 +125,23 @@ export class BookingsService {
   }
 
   async lookupBooking(referenceId: string): Promise<BookingLookupPayload> {
-    let bookingDetails: BookingDetails[] = [];
     let clientPage;
     let payment;
     let guest;
 
     let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
       .where('booking.booking_uuid = :referenceId', { referenceId })
+      .leftJoinAndSelect('booking.bookedRooms', 'bookedRoom')
+      .leftJoinAndSelect('bookedRoom.room', 'room')
       .getOne();
     if (matchingBooking) {
       payment = await this.paymentsService.findByBookingId(matchingBooking?.bookingId as string);
       guest = await this.guestsService.findOne(matchingBooking.guestId);
-
       clientPage = await this.clientPagesService.findOne(matchingBooking.clientPageId as string);
-      const bookingDetail: BookingDetails = matchingBooking as unknown as BookingDetails;
-      bookingDetail.bookedRoom = null;
-      bookingDetails.push(bookingDetail);
     }
 
     return {
-      bookingDetails,
+      booking: matchingBooking as Booking,
       payment,
       guest,
       referenceId,

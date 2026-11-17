@@ -1,10 +1,12 @@
 import { Booking } from 'src/lodging/bookings/entities/booking.entity';
+import { Room } from 'src/lodging/rooms/entities/room.entity';
 import {
     Column,
     CreateDateColumn,
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -18,7 +20,7 @@ export class BookedRoom {
     @JoinColumn({ name: 'booking_id', referencedColumnName: 'bookingId' })
     booking: Booking;
 
-    @Column({ type: 'bigint', name: 'booking_id'})
+    @Column({ type: 'bigint', name: 'booking_id' })
     bookingId: string;
 
     @Column({ type: 'bigint', name: 'client_page_id' })
@@ -26,6 +28,13 @@ export class BookedRoom {
 
     @Column({ type: 'bigint', name: 'guest_id' })
     guestId: string;
+
+    @Column({ type: 'bigint', name: 'room_id' })
+    roomId: string;
+
+    @OneToOne(() => Room)
+    @JoinColumn({name: 'room_id'})
+    room: Room;
 
     @Column({ type: 'int', name: 'adult_guests' })
     adultGuests: number;
