@@ -14,10 +14,10 @@ export class BookingDetails {
     bookingUUID: string;
     bookingTimestamp: Date;
     updatedTimestamp: Date;
-    bookedRoom: BookedRoom | null;
+    bookedRoom: BookingRoomDetails | null;
 }
 
-export class BookedRoom {
+export class BookingRoomDetails {
     roomId: string;
     roomTitle: string;
     roomDescription: string;

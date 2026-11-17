@@ -1,24 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientPagesService } from 'src/client/client-pages/client-pages.service';
+import { BookedRoom } from 'src/lodging/bookings/entities/booked-room.entity';
 import { Guest } from 'src/lodging/guests/entities/guest.entity';
 import { GuestsService } from 'src/lodging/guests/guests.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { PaymentsService } from 'src/payments/payments.service';
+import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
 import { Repository } from 'typeorm';
-import { BookedRoom, BookingDetails, BookingLookupPayload } from './dto/booking-lookup-payload.dto';
+import { BookingDetails, BookingLookupPayload } from './dto/booking-lookup-payload.dto';
 import { BookingPayload } from './dto/booking-payload.dto';
 import { Booking } from './entities/booking.entity';
-import { MultiBookingXREF } from './entities/multi-booking-xref.entity';
 
 @Injectable()
 export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>, // 👈 Inject repository
-    @InjectRepository(MultiBookingXREF)
-    private readonly xrefRepository: Repository<MultiBookingXREF>, // 👈 Inject repository
+    @InjectRepository(BookedRoom)
+    private readonly bookedRoomRepository: Repository<BookedRoom>, // 👈 Inject repository
     private readonly guestsService: GuestsService,
     private readonly paymentsService: PaymentsService,
     private readonly roomsService: RoomsService,
@@ -37,9 +38,9 @@ export class BookingsService {
 
   async findOverlappingBookings(
     clientPageId: string,
-    rangeStart: string, 
-    rangeEnd: string): Promise<Booking[] | null> {
-    return await this.bookingRepository
+    rangeStart: string,
+    rangeEnd: string): Promise<BookedRoom[] | null> {
+    return await this.bookedRoomRepository
       .createQueryBuilder('booking')
       .where('booking.clientPageId = :clientPageId', { clientPageId })
       .where('booking.checkInDate <= :rangeEnd', { rangeEnd })
@@ -65,129 +66,80 @@ export class BookingsService {
     guest.guestInet = '0.0.0.0';
     let savedGuest = await this.guestsService.save(guest);
 
-    let savedBookings: Booking[] = [];
+    const booking = new Booking();
+    booking.guestId = savedGuest.guestId;
+    booking.clientPageId = bookingPayload.clientPageId;
+    let savedBooking = await this.bookingRepository.save(booking);
 
-    let roomIdCount = 0;
-    for (let room of bookingPayload.rooms) {
-      if (room.roomId != null) {
-        roomIdCount++;
-      }
-    }
+    const rooms = await this.roomsService.findByClientPageId(bookingPayload.clientPageId);
+    let totalAmount = calculateBookingTotalV2(bookingPayload.rooms, rooms);
 
-    let savedXref: MultiBookingXREF | null = null;
-    if (roomIdCount > 1) {
-      const multiBookingXref = new MultiBookingXREF();
-      multiBookingXref.clientPageId = bookingPayload.clientPageId;
-      multiBookingXref.guestId = savedGuest.guestId;
-      savedXref = await this.xrefRepository.save(multiBookingXref);
-    }
-
-    for (let room of bookingPayload.rooms) {
-      if (room.roomId != null) {
-        const bookedRoom = await this.roomsService.findOne(room.roomId as unknown as string);
-        const booking = new Booking();
-        if (savedXref) {
-          booking.multiBookingXrefId = savedXref.multiBookingXrefId;
-        }
-        booking.clientPageId = bookingPayload.clientPageId;
-        booking.checkInDate = room.checkInDate;
-        booking.checkOutDate = room.checkOutDate;
-        booking.numberOfGuests = bookingPayload.guest.numberOfGuests;
-        booking.bookedRate = bookedRoom?.nightlyRate as any;
-        booking.roomId = room.roomId as any;
-        booking.checkInTime = '14:30:15';
-        booking.checkOutTime = '14:30:15';
-        booking.guestId = savedGuest.guestId;
-        let savedBooking = await this.bookingRepository.save(booking);
-        savedBookings.push(savedBooking);
+    for (let roomSelection of bookingPayload.rooms) {
+      let matchingRoom = rooms.find(room => room.roomId == roomSelection.roomId);
+      if (matchingRoom) {
+        const bookedRoom = new BookedRoom();
+        bookedRoom.bookingId = savedBooking.bookingId;
+        bookedRoom.guestId = savedGuest.guestId;
+        bookedRoom.clientPageId = bookingPayload.clientPageId;
+        bookedRoom.checkInDate = roomSelection.checkInDate as any;
+        bookedRoom.checkOutDate = roomSelection.checkOutDate as any;
+        bookedRoom.adultGuests = roomSelection.guestCount.adults;
+        bookedRoom.childGuests = roomSelection.guestCount.children;
+        bookedRoom.infantGuests = roomSelection.guestCount.infants;
+        bookedRoom.petGuests = roomSelection.guestCount.pets;
+        bookedRoom.roomQuantity = roomSelection.quantity;
+        bookedRoom.bookedNightlyRate = matchingRoom.nightlyRate;
+        bookedRoom.bookedWeeklyRate = matchingRoom.weeklyRate;
+        bookedRoom.bookedMonthlyRate = matchingRoom.monthlyRate;
+        await this.bookedRoomRepository.save(bookedRoom);
+      } else {
+        throw new InternalServerErrorException('No matching room found for roomId: ' + roomSelection.roomId);
       }
     }
 
     const payment = new Payment();
-    if (savedXref) {
-      payment.multiBookingXrefId = savedXref.multiBookingXrefId;
-    } else {
-      payment.bookingId = savedBookings[0].bookingId;
-    }
+    payment.bookingId = savedBooking.bookingId;
     payment.guestId = savedGuest.guestId;
-    payment.paymentAmount = bookingPayload.currentTotal as any; // TODO make sure its the server calculated total
+    payment.paymentAmount = totalAmount as unknown as string;
     payment.paymentType = 'hotel_booking';
     payment.isRefunded = false;
     payment.stripePaymentId = bookingPayload.stripePaymentIntentId;
     await this.paymentsService.save(payment);
 
-    const referenceId = savedXref ? savedXref.multiBookingUUID : savedBookings[0].bookingUUID;
+    const referenceId = savedBooking.bookingUuid;
     // throw new Error('Stop booking so it wont redirect and you can resubmit over and over');
     return { referenceId };
   }
 
   async doesBookingExist(referenceId: string): Promise<Object> {
     let clientRouteSegment;
-    let matchingXref = await this.xrefRepository.createQueryBuilder('xref')
-      .where('xref.multiBookingUUID = :referenceId', { referenceId })
+    let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
+      .where('booking.bookingUUID = :referenceId', { referenceId })
       .getOne();
-    if (matchingXref) {
-      let clientPage = await this.clientPagesService.findOne(matchingXref.clientPageId);
+    if (matchingBooking) {
+      let clientPage = await this.clientPagesService.findOne(matchingBooking?.clientPageId as string);
       clientRouteSegment = clientPage?.businessNameRouteSegment;
-    } else {
-      let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
-        .where('booking.bookingUUID = :referenceId', { referenceId })
-        .getOne();
-      if (matchingBooking) {
-        let clientPage = await this.clientPagesService.findOne(matchingBooking?.clientPageId as string);
-        clientRouteSegment = clientPage?.businessNameRouteSegment;
-      }
     }
     return { clientRouteSegment };
   }
 
-  // TODO -- refactor to reduce complexity and latency
   async lookupBooking(referenceId: string): Promise<BookingLookupPayload> {
-    let matchingXref = await this.xrefRepository.createQueryBuilder('xref')
-      .where('xref.multiBookingUUID = :referenceId', { referenceId })
-      .getOne();
-
     let bookingDetails: BookingDetails[] = [];
     let clientPage;
     let payment;
     let guest;
 
-    if (matchingXref) {
-      let xrefId = matchingXref.multiBookingXrefId;
-      let bookings = await this.bookingRepository.createQueryBuilder('booking')
-        .where('booking.multiBookingXrefId = :xrefId', { xrefId })
-        .getMany();
-      payment = await this.paymentsService.findByXrefId(xrefId);
-      guest = await this.guestsService.findOne(matchingXref.guestId);
-      if (bookings && bookings.length > 0) {
-        for (let booking of bookings) {
-          let room = await this.roomsService.findOne(booking.roomId);
-          clientPage = await this.clientPagesService.findOne(room?.clientPageId as string);
-          const bookingDetail: BookingDetails = booking as unknown as BookingDetails;
-          const bookedRoom: BookedRoom = room as unknown as BookedRoom;
-          bookingDetail.bookedRoom = bookedRoom;
-          bookingDetails.push(bookingDetail);
-        }
-      }
-    } else {
-      let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
-        .where('booking.bookingUUID = :referenceId', { referenceId })
-        .getOne();
-      if (matchingBooking) {
-        if (matchingBooking.multiBookingXrefId) {
-          let matchingXref = await this.xrefRepository.findOneBy({ multiBookingXrefId: matchingBooking.multiBookingXrefId });
-          payment = await this.paymentsService.findByXrefId(matchingXref?.multiBookingXrefId as string);
-        } else {
-          payment = await this.paymentsService.findByBookingId(matchingBooking?.bookingId as string);
-        }
-        guest = await this.guestsService.findOne(matchingBooking.guestId);
-        let room = await this.roomsService.findOne(matchingBooking.roomId);
-        clientPage = await this.clientPagesService.findOne(room?.clientPageId as string);
-        const bookingDetail: BookingDetails = matchingBooking as unknown as BookingDetails;
-        const bookedRoom: BookedRoom = room as unknown as BookedRoom;
-        bookingDetail.bookedRoom = bookedRoom;
-        bookingDetails.push(bookingDetail);
-      }
+    let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
+      .where('booking.booking_uuid = :referenceId', { referenceId })
+      .getOne();
+    if (matchingBooking) {
+      payment = await this.paymentsService.findByBookingId(matchingBooking?.bookingId as string);
+      guest = await this.guestsService.findOne(matchingBooking.guestId);
+
+      clientPage = await this.clientPagesService.findOne(matchingBooking.clientPageId as string);
+      const bookingDetail: BookingDetails = matchingBooking as unknown as BookingDetails;
+      bookingDetail.bookedRoom = null;
+      bookingDetails.push(bookingDetail);
     }
 
     return {
