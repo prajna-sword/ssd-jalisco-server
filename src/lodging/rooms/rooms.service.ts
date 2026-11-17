@@ -13,16 +13,18 @@ export class RoomsService {
   ) { }
 
   async update(roomId: string, payload: UpdateRoomDto): Promise<Room> {
+    console.log(payload.displayImageUrls?.length)
     // 1. Fetches the entity by ID and merges the new fields
     const room = await this.roomRepository.preload({
-      roomId,
       ...payload,
+      roomId,
     });
 
     // 2. Handles missing records cleanly
     if (!room) {
       throw new NotFoundException(`Room with ID "${roomId}" not found`);
     }
+    console.log(room.displayImageUrls.length)
 
     // 3. Persists changes and runs TypeORM entity hooks/subscribers
     return this.roomRepository.save(room);

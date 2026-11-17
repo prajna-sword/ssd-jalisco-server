@@ -6,9 +6,8 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
-    OneToOne,
     PrimaryGeneratedColumn,
-    UpdateDateColumn,
+    UpdateDateColumn
 } from 'typeorm';
 
 @Entity('booked_rooms')
@@ -32,8 +31,8 @@ export class BookedRoom {
     @Column({ type: 'bigint', name: 'room_id' })
     roomId: string;
 
-    @OneToOne(() => Room)
-    @JoinColumn({name: 'room_id'})
+    @ManyToOne(() => Room)
+    @JoinColumn({ name: 'room_id' })
     room: Room;
 
     @Column({ type: 'int', name: 'adult_guests' })
@@ -77,6 +76,12 @@ export class BookedRoom {
         nullable: true,
     })
     bookedMonthlyRate: number | null;
+
+    @Column({
+        name: 'pricing_mode',
+        type: 'text',
+    })
+    pricingMode: string;
 
     @Column({ type: 'date', name: 'check_in_date' })
     checkInDate: string;

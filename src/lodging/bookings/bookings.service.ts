@@ -92,6 +92,7 @@ export class BookingsService {
         bookedRoom.bookedNightlyRate = matchingRoom.nightlyRate;
         bookedRoom.bookedWeeklyRate = matchingRoom.weeklyRate;
         bookedRoom.bookedMonthlyRate = matchingRoom.monthlyRate;
+        bookedRoom.pricingMode = matchingRoom.pricingMode;
         await this.bookedRoomRepository.save(bookedRoom);
       } else {
         throw new InternalServerErrorException('No matching room found for roomId: ' + roomSelection.roomId);
