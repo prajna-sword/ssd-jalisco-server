@@ -68,8 +68,8 @@ export class BookingsService {
     let savedBookings: Booking[] = [];
 
     let roomIdCount = 0;
-    for (let roomId of bookingPayload.room.roomIds) {
-      if (roomId != null) {
+    for (let room of bookingPayload.rooms) {
+      if (room.roomId != null) {
         roomIdCount++;
       }
     }
@@ -82,19 +82,19 @@ export class BookingsService {
       savedXref = await this.xrefRepository.save(multiBookingXref);
     }
 
-    for (let roomId of bookingPayload.room.roomIds) {
-      if (roomId != null) {
-        const bookedRoom = await this.roomsService.findOne(roomId as unknown as string);
+    for (let room of bookingPayload.rooms) {
+      if (room.roomId != null) {
+        const bookedRoom = await this.roomsService.findOne(room.roomId as unknown as string);
         const booking = new Booking();
         if (savedXref) {
           booking.multiBookingXrefId = savedXref.multiBookingXrefId;
         }
         booking.clientPageId = bookingPayload.clientPageId;
-        booking.checkInDate = bookingPayload.room.checkInDate;
-        booking.checkOutDate = bookingPayload.room.checkOutDate;
+        booking.checkInDate = room.checkInDate;
+        booking.checkOutDate = room.checkOutDate;
         booking.numberOfGuests = bookingPayload.guest.numberOfGuests;
         booking.bookedRate = bookedRoom?.nightlyRate as any;
-        booking.roomId = roomId as any;
+        booking.roomId = room.roomId as any;
         booking.checkInTime = '14:30:15';
         booking.checkOutTime = '14:30:15';
         booking.guestId = savedGuest.guestId;

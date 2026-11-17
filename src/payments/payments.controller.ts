@@ -11,11 +11,12 @@ export class PaymentsController {
     return this.paymentsService.findAll();
   }
 
-  @Post('create-intent') // Enforces POST /payment/create-intent
+  @Post('create-intent/:clientPageId') // Enforces POST /payment/create-intent
   async createIntent(
-    @Body() body: createPaymentDto.CreateIntentDto
+    @Param('clientPageId') clientPageId: string,
+    @Body() body: createPaymentDto.RoomSelection[]
   ) {
-    return await this.paymentsService.generateCheckoutIntent(body);
+    return await this.paymentsService.generateCheckoutIntent(clientPageId, body);
   }
 
   // For manual capture feature

@@ -40,4 +40,9 @@ export class RoomsService {
     return await this.roomRepository.findOneBy({ roomId: id });
   }
 
+  async findByClientPageId(clientPageId: string): Promise<Room[]> {
+    return await this.roomRepository.createQueryBuilder('room')
+      .where('room.clientPageId == :clientPageId', { clientPageId })
+      .getMany();
+  }
 }

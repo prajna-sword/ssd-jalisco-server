@@ -1,19 +1,18 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { differenceInCalendarDays } from 'date-fns';
-import { Room } from 'src/lodging/rooms/entities/room.entity';
+import { ClientPagesService } from 'src/client/client-pages/client-pages.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
+import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
 import Stripe from 'stripe';
 import { Repository } from 'typeorm';
-import { CreateIntentDto } from './dto/create-payment.dto';
+import { RoomSelection } from './dto/create-payment.dto';
 import { Payment } from './entities/payment.entity';
 
 
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
-  private rooms: Room[] = [];
 
 
   constructor(
@@ -21,6 +20,7 @@ export class PaymentsService {
     private readonly paymentRepository: Repository<Payment>, // 👈 Inject repository
     private configService: ConfigService,
     private roomService: RoomsService,
+    private clientPageService: ClientPagesService,
   ) {
     this.stripe = new Stripe(this.configService.get<string>('STRIPE_SECRET_KEY') as any, {
       apiVersion: '2026-08-26.dahlia' as any, // Standard modern Stripe API typing fallback
@@ -141,68 +141,42 @@ export class PaymentsService {
 
   // TODO -- verify that the current calculation method is safe since the amount of 
   // days will have to be passed from the UI and it could be mutable?
-  async generateCheckoutIntent(bookingDetails: CreateIntentDto) {
-    const nights = differenceInCalendarDays(bookingDetails.checkOutDate, bookingDetails.checkInDate);
+  async generateCheckoutIntent(clientPageId: string, bookingDetails: RoomSelection[]) {
+    const rooms = await this.roomService.findByClientPageId(clientPageId);
 
-    try {
-      if (this.rooms.length === 0) {
-        this.rooms = await this.roomService.findAll();
-      }
-      let bookedRooms: Room[] = [];
-      for (let roomId of bookingDetails.roomIds) {
-        this.rooms.forEach(room => {
-          if (room.roomId === roomId) {
-            bookedRooms.push(room);
-          }
-        });
-      }
-      let totalAmount = 0;
-      bookedRooms.forEach(room => {
-        totalAmount += (room.nightlyRate as any * nights)
-      });
+    let totalAmount = calculateBookingTotalV2(bookingDetails, rooms);
 
-      // 2. Stripe expects integers in the smallest currency unit (cents/sub-currency)
-      // $100.50 USD becomes 10050 cents. (If using MXN, pesos also use cents)
-      const amountInCents = Math.round(totalAmount * 100);
+    // 2. Stripe expects integers in the smallest currency unit (cents/sub-currency)
+    // $100.50 USD becomes 10050 cents. (If using MXN, pesos also use cents)
+    const amountInCents = Math.round(totalAmount * 100);
 
-      let roomIdString = '';
-      bookingDetails.roomIds.forEach(roomId => {
-        roomIdString += roomId;
-        roomIdString += ','
-      });
+    // 3. Create the payment intent object on Stripe's cloud API
+    const intent = await this.stripe.paymentIntents.create({
+      amount: amountInCents,
+      currency: 'mxn', // or 'mxn' if pricing natively in Mexican Pesos
+      setup_future_usage: 'off_session', // 👈 Must match the client-side configuration!
+      // Highly recommended for elements: allows automatic support for card, Link, ApplePay, etc.
+      automatic_payment_methods: {
+        enabled: true,
+      },
 
-      // 3. Create the payment intent object on Stripe's cloud API
-      const intent = await this.stripe.paymentIntents.create({
-        amount: amountInCents,
-        currency: 'mxn', // or 'mxn' if pricing natively in Mexican Pesos
-        setup_future_usage: 'off_session', // 👈 Must match the client-side configuration!
-        // Highly recommended for elements: allows automatic support for card, Link, ApplePay, etc.
-        automatic_payment_methods: {
-          enabled: true,
-        },
+      // Optional metadata tracker to match Stripe dashboard entries to your local DB
+      // metadata: {
+      //   hotelLocation: 'Jalisco_Mexico',
+      //   roomIds: roomIdString,
+      //   totalNights: nights.toString(),
+      // },
+    });
 
-        // Optional metadata tracker to match Stripe dashboard entries to your local DB
-        metadata: {
-          hotelLocation: 'Jalisco_Mexico',
-          roomIds: roomIdString,
-          totalNights: nights.toString(),
-        },
-      });
+    // 4. Return the unique client secret safely back to the client app
+    return {
+      clientSecret: intent.client_secret,
+      totalAmountUSD: totalAmount,
+    };
 
-      // 4. Return the unique client secret safely back to the client app
-      return {
-        clientSecret: intent.client_secret,
-        totalAmountUSD: totalAmount,
-      };
-
-    } catch (error) {
-      throw new BadRequestException(`Stripe Intent failed: ${(error as Error).message}`);
-    }
+  } catch(error) {
+    throw new BadRequestException(`Stripe Intent failed: ${(error as Error).message}`);
   }
 
-  moneyToNumber(moneyStr: string): number {
-    // Removes everything except digits, hyphens, and decimal points
-    const cleanString = moneyStr.replace(/[^0-9.-]+/g, "");
-    return parseFloat(cleanString);
-  }
+
 }

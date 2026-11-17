@@ -1,8 +1,4 @@
-export interface RoomSelection {
-  roomIds: number[];
-  checkInDate: Date;
-  checkOutDate: Date;
-}
+import { RoomSelection } from "src/payments/dto/create-payment.dto";
 
 export interface GuestDetails {
   guestName: string;
@@ -23,7 +19,7 @@ export interface GuestAddress {
 }
 
 export interface BookingPayload {
-  room: RoomSelection;
+  rooms: RoomSelection[];
   guest: GuestDetails;
   currentTotal: number;
   stripePaymentIntentId: string;
