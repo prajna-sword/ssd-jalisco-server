@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import * as bookingPayloadDto from './dto/booking-payload.dto';
 
@@ -27,11 +27,12 @@ export class BookingsController {
   }
 
   // YYYY-MM-DD
-  @Get('dates')
+  @Get('/:id/dates')
   async getBookings(
+    @Param('id') clientPageId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ) {
-    return this.bookingsService.findOverlappingBookings(startDate, endDate);
+    return this.bookingsService.findOverlappingBookings(clientPageId, startDate, endDate);
   }
 }
