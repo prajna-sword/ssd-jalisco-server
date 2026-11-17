@@ -41,7 +41,7 @@ export class BookingsService {
     rangeEnd: string): Promise<Booking[] | null> {
     return await this.bookingRepository
       .createQueryBuilder('booking')
-      .where('booking.clientPageId == :clientPageId', { clientPageId })
+      .where('booking.clientPageId = :clientPageId', { clientPageId })
       .where('booking.checkInDate <= :rangeEnd', { rangeEnd })
       .andWhere('booking.checkOutDate >= :rangeStart', { rangeStart })
       .getMany();

@@ -42,7 +42,7 @@ export class RoomsService {
 
   async findByClientPageId(clientPageId: string): Promise<Room[]> {
     return await this.roomRepository.createQueryBuilder('room')
-      .where('room.clientPageId == :clientPageId', { clientPageId })
+      .where('room.clientPageId = :clientPageId', { clientPageId })
       .getMany();
   }
 }
