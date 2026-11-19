@@ -11,6 +11,7 @@ import { GuestsModule } from './lodging/guests/guests.module';
 import { RoomsModule } from './lodging/rooms/rooms.module';
 import { PaymentsModule } from './payments/payments.module';
 import { RefundModule } from './payments/refund.module';
+import { WeatherModule } from './weather/weather.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -31,6 +32,7 @@ import { RefundModule } from './payments/refund.module';
     }),
     ClientPagesModule,
     AuthModule,
+    WeatherModule,
   ],
   controllers: [],
   providers: [],
