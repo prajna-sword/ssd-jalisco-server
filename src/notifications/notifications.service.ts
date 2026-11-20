@@ -69,8 +69,33 @@ export class NotificationsService {
         await this.notificationRepository.save(notification);
     }
 
-    createBookingCancellationNotification(booking: Booking): void {
+    async createBookingCancellationNotification(booking: Booking): Promise<void> {
+        let notificationText = `${booking?.guest?.fullName} cancelled: `;
 
+        for (let i = 0; i < booking.bookedRooms.length; i++) {
+            const bR = booking.bookedRooms[i];
+            if (i > 0) {
+                notificationText += ',\n'
+            }
+            if (bR.roomQuantity > 1) {
+                notificationText += `(${bR.roomQuantity}) ${bR.room.roomTitle}(s) `
+            } else {
+                notificationText += ` ${bR.room.roomTitle} `
+            }
+            notificationText += `${format(bR.checkInDate, this.DISPLAY_DATE_FORMAT)} - ${format(bR.checkOutDate, this.DISPLAY_DATE_FORMAT)}`
+        }
+        notificationText += '.';
+
+        const notification: any = {
+            clientPageId: booking.clientPageId,
+            bookingId: booking.bookingId,
+            guestId: booking.guestId,
+            notificationOrigin: NotificationOrigins.GUEST,
+            notificationType: NotificationTypes.BOOKING_CANCELLATION,
+            notificationText,
+            isRead: false,
+        }
+        await this.notificationRepository.save(notification);
     }
 
     async createGuestMessageNotification(payload: NotificationDto): Promise<Notification> {

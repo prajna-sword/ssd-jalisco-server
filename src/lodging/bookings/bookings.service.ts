@@ -9,7 +9,7 @@ import { NotificationsService } from 'src/notifications/notifications.service';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { PaymentsService } from 'src/payments/payments.service';
 import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BookingLookupPayload } from './dto/booking-lookup-payload.dto';
 import { BookingPayload } from './dto/booking-payload.dto';
 import { Booking } from './entities/booking.entity';
@@ -35,7 +35,23 @@ export class BookingsService {
 
   // 2. Get one booking by its ID
   async findOne(id: string): Promise<Booking | null> {
-    return await this.bookingRepository.findOneBy({ bookingId: id });
+    return await this.bookingRepository.findOne({
+      where: { bookingId: id },
+      relations: {
+        bookedRooms: {
+          room: true
+        },
+        guest: true
+      },
+    })
+  }
+
+  async findBookedRooms(bookedRoomIds: string[]): Promise<BookedRoom[] | null> {
+    return await this.bookedRoomRepository.find({
+      where: {
+        bookedRoomId: In(bookedRoomIds)
+      }
+    })
   }
 
   async findOverlappingBookings(
@@ -163,5 +179,16 @@ export class BookingsService {
     booking.isCanceled = true;
     booking.cancellationTimestamp = new Date();
     this.bookingRepository.save(booking);
+  }
+
+  async cancelBookedRooms(bookedRoomIds: string[]): Promise<void> {
+    const bookedRooms = await this.findBookedRooms(bookedRoomIds);
+    if (bookedRooms) {
+      bookedRooms?.forEach(room => {
+        room.isCanceled = true;
+        room.cancellationTimestamp = new Date();
+      });
+      await this.bookedRoomRepository.save(bookedRooms as BookedRoom[]);
+    }
   }
 }

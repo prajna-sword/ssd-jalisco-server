@@ -1,8 +1,11 @@
+import { Guest } from 'src/lodging/guests/entities/guest.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   Generated,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -19,6 +22,10 @@ export class Booking {
 
   @Column({ type: 'bigint', name: 'guest_id' })
   guestId: string;
+
+  @ManyToOne(() => Guest, { nullable: true })
+  @JoinColumn({ name: 'guest_id' })
+  guest: Guest | null;
 
   @Column({ type: 'boolean', name: 'is_canceled', default: false })
   isCanceled: boolean;
