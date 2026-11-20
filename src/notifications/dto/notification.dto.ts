@@ -1,8 +1,9 @@
+import { PartialType } from "@nestjs/mapped-types";
 import { ClientPage } from "src/client/client-pages/entities/client-page.entity";
 import { Booking } from "src/lodging/bookings/entities/booking.entity";
 import { Guest } from "src/lodging/guests/entities/guest.entity";
 
-export interface NotificationDto {
+export class NotificationDto {
   notificationId: string;
 
   clientPageId: string | null;
@@ -19,6 +20,9 @@ export interface NotificationDto {
   updatedTimestamp: Date;
 }
 
+export class PartialNotificationDto extends PartialType(NotificationDto) {
+  
+}
 
 export interface NotificationWithRelationsDto extends NotificationDto {
   clientPage?: ClientPage | null;

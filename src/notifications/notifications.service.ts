@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { format } from 'date-fns';
 import { Booking } from 'src/lodging/bookings/entities/booking.entity';
 import { Guest } from 'src/lodging/guests/entities/guest.entity';
-import { NotificationDto } from 'src/notifications/dto/notification.dto';
+import { PartialNotificationDto } from 'src/notifications/dto/notification.dto';
 import { Notification } from 'src/notifications/entities/notification.entity';
 import { NotificationOrigins, NotificationTypes } from 'src/notifications/enum/notification-constants.enum';
 import { In, Repository } from 'typeorm';
@@ -98,12 +98,14 @@ export class NotificationsService {
         await this.notificationRepository.save(notification);
     }
 
-    async createGuestMessageNotification(payload: NotificationDto): Promise<Notification> {
-        const notification: Notification = {
-            ...payload,
-            clientPage: null,
-            guest: null,
-            booking: null
+    async createGuestMessageNotification(payload: PartialNotificationDto): Promise<Notification> {
+        const notification = {
+            clientPageId: payload.clientPageId,
+            bookingId: payload.bookingId,
+            guestId: payload.guestId,
+            notificationOrigin: payload.notificationOrigin,
+            notificationType: payload.notificationType,
+            notificationText: payload.notificationText
         }
         return await this.notificationRepository.save(notification);
     }

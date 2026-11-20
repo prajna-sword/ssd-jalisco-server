@@ -26,7 +26,7 @@ export class NotificationsController {
   }
 
   @Post('/message')
-  create(@Body() notification: notificationDto.NotificationDto) {
+  create(@Body() notification: notificationDto.PartialNotificationDto) {
     return this.notificationsService.createGuestMessageNotification(notification);
   }
 }
