@@ -5,6 +5,7 @@ import { BookedRoom } from 'src/lodging/bookings/entities/booked-room.entity';
 import { Guest } from 'src/lodging/guests/entities/guest.entity';
 import { GuestsService } from 'src/lodging/guests/guests.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { Payment } from 'src/payments/entities/payment.entity';
 import { PaymentsService } from 'src/payments/payments.service';
 import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
@@ -23,7 +24,8 @@ export class BookingsService {
     private readonly guestsService: GuestsService,
     private readonly paymentsService: PaymentsService,
     private readonly roomsService: RoomsService,
-    private readonly clientPagesService: ClientPagesService
+    private readonly clientPagesService: ClientPagesService,
+    private readonly notificationService: NotificationsService
   ) { }
 
   // 1. Get all bookings
@@ -74,6 +76,7 @@ export class BookingsService {
     const rooms = await this.roomsService.findByClientPageId(bookingPayload.clientPageId);
     let totalAmount = calculateBookingTotalV2(bookingPayload.rooms, rooms);
 
+    const bookedRooms: BookedRoom[] = [];
     for (let roomSelection of bookingPayload.rooms) {
       let matchingRoom = rooms.find(room => room.roomId == roomSelection.roomId);
       if (matchingRoom) {
@@ -93,7 +96,9 @@ export class BookingsService {
         bookedRoom.bookedWeeklyRate = matchingRoom.weeklyRate;
         bookedRoom.bookedMonthlyRate = matchingRoom.monthlyRate;
         bookedRoom.pricingMode = matchingRoom.pricingMode;
-        await this.bookedRoomRepository.save(bookedRoom);
+        const savedBookeRoom = await this.bookedRoomRepository.save(bookedRoom);
+        savedBookeRoom.room = matchingRoom;
+        bookedRooms.push(savedBookeRoom);
       } else {
         throw new InternalServerErrorException('No matching room found for roomId: ' + roomSelection.roomId);
       }
@@ -110,13 +115,17 @@ export class BookingsService {
 
     const referenceId = savedBooking.bookingUuid;
     // throw new Error('Stop booking so it wont redirect and you can resubmit over and over');
+
+    // Create a notification for the client to view in their dashboard
+    savedBooking.bookedRooms = bookedRooms;
+    this.notificationService.createBookingNotification(savedBooking, savedGuest);
     return { referenceId };
   }
 
   async doesBookingExist(referenceId: string): Promise<Object> {
     let clientRouteSegment;
     let matchingBooking = await this.bookingRepository.createQueryBuilder('booking')
-      .where('booking.bookingUUID = :referenceId', { referenceId })
+      .where('booking.bookingUuid = :referenceId', { referenceId })
       .getOne();
     if (matchingBooking) {
       let clientPage = await this.clientPagesService.findOne(matchingBooking?.clientPageId as string);

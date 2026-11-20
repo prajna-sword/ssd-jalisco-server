@@ -12,6 +12,7 @@ import { RoomsModule } from './lodging/rooms/rooms.module';
 import { PaymentsModule } from './payments/payments.module';
 import { RefundModule } from './payments/refund.module';
 import { WeatherModule } from './weather/weather.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -33,6 +34,7 @@ import { WeatherModule } from './weather/weather.module';
     ClientPagesModule,
     AuthModule,
     WeatherModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [],

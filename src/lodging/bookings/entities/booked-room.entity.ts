@@ -89,6 +89,16 @@ export class BookedRoom {
     @Column({ type: 'date', name: 'check_out_date' })
     checkOutDate: string;
 
+    @Column({ type: 'boolean', name: 'is_canceled', default: false })
+    isCanceled: boolean;
+
+    @Column({
+        type: 'timestamptz',
+        name: 'cancellation_timestamp',
+        nullable: true,
+    })
+    cancellationTimestamp: Date | null;
+
     @CreateDateColumn({
         type: 'timestamp',
         name: 'created_timestamp',
