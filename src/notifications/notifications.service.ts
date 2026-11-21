@@ -31,12 +31,15 @@ export class NotificationsService {
     async getClientPageNotifications(clientPageId: string): Promise<Notification[]> {
         return await this.notificationRepository.createQueryBuilder('notification')
             .where('notification.clientPageId = :clientPageId', { clientPageId })
+            .leftJoinAndSelect('notification.guest', 'guest')
+            .leftJoinAndSelect('notification.booking', 'booking')
             .getMany();
     }
 
     async getGuestConversation(bookingId: string): Promise<Notification[]> {
         return await this.notificationRepository.createQueryBuilder('notification')
             .where('notification.bookingId = :bookingId', { bookingId })
+            .leftJoinAndSelect('notification.guest', 'guest')
             .getMany();
     }
 
