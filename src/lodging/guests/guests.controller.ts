@@ -1,7 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { GuestsService } from './guests.service';
-import { CreateGuestDto } from './dto/create-guest.dto';
-import { UpdateGuestDto } from './dto/update-guest.dto';
 
 @Controller('guests')
 export class GuestsController {
@@ -11,4 +9,8 @@ export class GuestsController {
     return this.guestsService.findAll();
   }
 
+  @Get('/:id')
+  findClientGuests(@Param('id') clientPageId:  string) {
+    return this.guestsService.findClientGuests(clientPageId);
+  }
 }

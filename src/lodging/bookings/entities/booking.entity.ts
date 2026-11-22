@@ -23,9 +23,9 @@ export class Booking {
   @Column({ type: 'bigint', name: 'guest_id' })
   guestId: string;
 
-  @ManyToOne(() => Guest, { nullable: true })
+  @ManyToOne(() => Guest, (guest) => guest.bookings)
   @JoinColumn({ name: 'guest_id' })
-  guest: Guest | null;
+  guest: Guest;
 
   @Column({ type: 'boolean', name: 'is_canceled', default: false })
   isCanceled: boolean;

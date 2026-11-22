@@ -33,6 +33,20 @@ export class BookingsService {
     return await this.bookingRepository.find();
   }
 
+  async findClientBookings(clientPageId: string): Promise<Booking[]> {
+    return await this.bookingRepository.find({
+      where: {
+        clientPageId,
+      },
+      relations: {
+        guest: true,
+        bookedRooms: {
+          room: true
+        }
+      }
+    })
+  }
+
   // 2. Get one booking by its ID
   async findOne(id: string): Promise<Booking | null> {
     return await this.bookingRepository.findOne({

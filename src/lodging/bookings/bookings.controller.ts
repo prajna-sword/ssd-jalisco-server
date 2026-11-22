@@ -26,6 +26,12 @@ export class BookingsController {
     return this.bookingsService.findAll();
   }
 
+
+  @Get('/:id')
+  getClientBookings(@Param('id') clientPageId: string,) {
+    return this.bookingsService.findClientBookings(clientPageId);
+  }
+
   // YYYY-MM-DD
   @Get('/:id/dates')
   async getBookings(

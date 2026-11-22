@@ -1,7 +1,9 @@
+import { Booking } from 'src/lodging/bookings/entities/booking.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -13,6 +15,10 @@ export class Guest {
     name: 'guest_id',
   })
   guestId: string;
+
+  // TODO -- fix nullability 
+  @Column({ type: 'bigint', name: 'client_page_id', nullable: true })
+  clientPageId: string;
 
   @Column({
     type: 'text',
@@ -74,10 +80,10 @@ export class Guest {
   })
   stripeCustId: string;
 
-  @Column({ 
-    type: 'boolean', 
-    name: 'preferred_guest', 
-    default: false 
+  @Column({
+    type: 'boolean',
+    name: 'preferred_guest',
+    default: false
   })
   isPreferredGuest: boolean;
 
@@ -106,4 +112,7 @@ export class Guest {
     name: 'updated_timestamp',
   })
   updatedTimestamp: Date;
+
+  @OneToMany(() => Booking, (booking) => booking.guest)
+  bookings: Booking[];
 }

@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateGuestDto } from './dto/create-guest.dto';
-import { UpdateGuestDto } from './dto/update-guest.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Guest } from './entities/guest.entity';
 import { Repository } from 'typeorm';
+import { Guest } from './entities/guest.entity';
 
 @Injectable()
 export class GuestsService {
@@ -14,6 +12,21 @@ export class GuestsService {
 
   async findAll(): Promise<Guest[]> {
     return await this.guestRepository.find();
+  }
+
+  async findClientGuests(clientPageId: string): Promise<Guest[]> {
+    return await this.guestRepository.find({
+      where: {
+        clientPageId,
+      },
+      relations: {
+        bookings: {
+          bookedRooms: {
+            room: true
+          }
+        }
+      }
+    })
   }
 
   async findOne(id: string): Promise<Guest | null> {
