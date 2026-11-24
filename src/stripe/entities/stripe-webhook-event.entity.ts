@@ -16,6 +16,12 @@ export class StripeWebhookEventEntity {
   @Column({ type: 'varchar', length: 50, default: 'processing' })
   status: 'processing' | 'processed' | 'failed';
 
+  @Column({ name: 'account_id', type: 'varchar', length: 255, nullable: true })
+  accountId: string | null;
+
+  @Column({ type: 'jsonb' })
+  payload: Record<string, any>;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

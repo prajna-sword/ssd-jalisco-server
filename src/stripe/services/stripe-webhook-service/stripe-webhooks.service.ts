@@ -15,7 +15,7 @@ export class StripeWebhooksService {
         });
     }
 
-    async handleEvent(event: Stripe.Event): Promise<{ received: boolean, duplicate?:  boolean }> {
+    async handleEvent(event: Stripe.Event): Promise<{ received: boolean, duplicate?: boolean }> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -26,6 +26,7 @@ export class StripeWebhooksService {
                 eventId: event.id,
                 eventType: event.type,
                 status: 'processing',
+                payload: event as any
             });
 
             // Handles specific business logic for each event type
@@ -64,130 +65,158 @@ export class StripeWebhooksService {
             // 1. CHECKOUT SESSIONS (QR Code Flows)
             // ==========================================
             case StripeWebhookEvent.CHECKOUT_SESSION_COMPLETED:
-                console.log(event.type);
+                const completedSession = event.data.object as Stripe.Checkout.Session;
+                console.log(completedSession);
                 break;
 
             case StripeWebhookEvent.CHECKOUT_SESSION_EXPIRED:
-                console.log(event.type);
+                const expiredSession = event.data.object as Stripe.Checkout.Session;
+                console.log(expiredSession);
                 break;
 
             case StripeWebhookEvent.CHECKOUT_SESSION_ASYNC_PAYMENT_SUCCEEDED:
-                console.log(event.type);
+                const sessionPaymentSucceeded = event.data.object as Stripe.Checkout.Session;
+                console.log(sessionPaymentSucceeded);
                 break;
 
             case StripeWebhookEvent.CHECKOUT_SESSION_ASYNC_PAYMENT_FAILED:
-                console.log(event.type);
+                const sessionPaymentFailed = event.data.object as Stripe.Checkout.Session;
+                console.log(sessionPaymentFailed);
                 break;
 
             // ==========================================
             // 2. PAYMENT INTENTS (Holds, Captures, Releases & Incidentals)
             // ==========================================
             case StripeWebhookEvent.PAYMENT_INTENT_AMOUNT_CAPTURABLE_UPDATED:
-                console.log(event.type);
+                const paymentIntentAmountUpdated = event.data.object as Stripe.PaymentIntent;
+                console.log(paymentIntentAmountUpdated);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_SUCCEEDED:
-                console.log(event.type);
+                const paymentIntentSucceeded = event.data.object as Stripe.PaymentIntent;
+                console.log(paymentIntentSucceeded);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_CANCELED:
-                console.log(event.type);
+                const paymentIntentCanceled = event.data.object as Stripe.PaymentIntent;
+                console.log(paymentIntentCanceled);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_PAYMENT_FAILED:
-                console.log(event.type);
+                const paymentIntenFailed = event.data.object as Stripe.PaymentIntent;
+                console.log(paymentIntenFailed);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_PROCESSING:
-                console.log(event.type);
+                const paymentIntentProcessing = event.data.object as Stripe.PaymentIntent;
+                console.log(paymentIntentProcessing);
                 break;
 
             // ==========================================
             // 3. CHARGES & REFUNDS (Post-Capture Disputes & Refunds)
             // ==========================================
             case StripeWebhookEvent.CHARGE_SUCCEEDED:
-                console.log(event.type);
+                const chargeSucceeded = event.data.object as Stripe.Charge;
+                console.log(chargeSucceeded);
                 break;
 
             case StripeWebhookEvent.CHARGE_CAPTURED:
-                console.log(event.type);
+                const chargeCaptured = event.data.object as Stripe.Charge;
+                console.log(chargeCaptured);
                 break;
 
             case StripeWebhookEvent.CHARGE_REFUNDED:
-                console.log(event.type);
+                const chargeRefunded = event.data.object as Stripe.Charge;
+                console.log(chargeRefunded);
                 break;
 
             case StripeWebhookEvent.CHARGE_DISPUTE_CREATED:
-                console.log(event.type);
+                const disputeCreated = event.data.object as Stripe.Dispute;
+                console.log(disputeCreated);
                 break;
 
             case StripeWebhookEvent.CHARGE_DISPUTE_CLOSED:
-                console.log(event.type);
+                const disputeClosed = event.data.object as Stripe.Dispute;
+                console.log(disputeClosed);
                 break;
 
             // ==========================================
             // 4. CUSTOMERS & SAVED PAYMENT METHODS (Cards on File)
             // ==========================================
             case StripeWebhookEvent.PAYMENT_METHOD_ATTACHED:
-                console.log(event.type);
+                const paymentMethodAttached = event.data.object as Stripe.PaymentMethod;
+                console.log(paymentMethodAttached);
                 break;
 
             case StripeWebhookEvent.PAYMENT_METHOD_DETACHED:
-                console.log(event.type);
+                const paymentMethodDetached = event.data.object as Stripe.PaymentMethod;
+                console.log(paymentMethodDetached);
                 break;
 
             case StripeWebhookEvent.PAYMENT_METHOD_AUTOMATICALLY_UPDATED:
-                console.log(event.type);
+                const paymentMethodAutoUpdate = event.data.object as Stripe.PaymentMethod;
+                console.log(paymentMethodAutoUpdate);
                 break;
 
             case StripeWebhookEvent.CUSTOMER_UPDATED:
-                console.log(event.type);
+                const customerUpdate = event.data.object as Stripe.Customer;
+                console.log(customerUpdate);
                 break;
 
             // ==========================================
             // 5. CONNECT ACCOUNTS (Express Client Onboarding - Connect Scope)
             // ==========================================
             case StripeWebhookEvent.ACCOUNT_UPDATED:
-                console.log(event.type);
+                const account = event.data.object as Stripe.Account;
+                console.log(account);
                 break;
 
             case StripeWebhookEvent.ACCOUNT_APPLICATION_DEAUTHORIZED:
-                console.log(event.type);
+                const application = event.data.object as Stripe.Application;
+                console.log(application);
                 break;
 
             case StripeWebhookEvent.CAPABILITY_UPDATED:
-                console.log(event.type);
+                const capability = event.data.object as Stripe.Capability;
+                console.log(capability);
                 break;
 
             // ==========================================
             // 6. TRANSFERS & PAYOUTS (Splitting Funds & Partial Payouts)
             // ==========================================
             case StripeWebhookEvent.TRANSFER_CREATED:
-                console.log(event.type);
+                const transferCreated = event.data.object as Stripe.Transfer;
+                console.log(transferCreated);
                 break;
 
             case StripeWebhookEvent.TRANSFER_UPDATED:
-                console.log(event.type);
+                const transferUpdated = event.data.object as Stripe.Transfer;
+                console.log(transferUpdated);
                 break;
 
             case StripeWebhookEvent.TRANSFER_REVERSED:
-                console.log(event.type);
+                const transferReverse = event.data.object as Stripe.Transfer;
+                console.log(transferReverse);
                 break;
 
             case StripeWebhookEvent.PAYOUT_CREATED:
-                console.log(event.type);
+                const payoutCreated = event.data.object as Stripe.Payout;
+                console.log(payoutCreated);
                 break;
 
             case StripeWebhookEvent.PAYOUT_PAID:
-                console.log(event.type);
+                const payoutPaid = event.data.object as Stripe.Payout;
+                console.log(payoutPaid);
                 break;
 
             case StripeWebhookEvent.PAYOUT_FAILED:
-                console.log(event.type);
+                const payoutFailed = event.data.object as Stripe.Payout;
+                console.log(payoutFailed);
                 break;
 
             case StripeWebhookEvent.PAYOUT_CANCELED:
-                console.log(event.type);
+                const payoutCanceled = event.data.object as Stripe.Payout;
+                console.log(payoutCanceled);
                 break;
 
             default:
