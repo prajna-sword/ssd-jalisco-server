@@ -5,16 +5,21 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Inject,
   Logger,
   Param,
   Post,
   Req,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { StripeWebhooksService } from 'src/stripe/services/stripe-webhook-service/stripe-webhooks.service';
 import Stripe from 'stripe';
 
 @Controller('webhook')
 export class StripeWebhooksController {
+  @Inject(StripeWebhooksService)
+  private readonly stripeWebhooksService: StripeWebhooksService;
+
   private readonly stripe: Stripe;
   private readonly logger = new Logger(StripeWebhooksController.name);
   private readonly webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -47,6 +52,13 @@ export class StripeWebhooksController {
     } catch (err: any) {
       this.logger.error(`Webhook signature verification failed: ${err.message}`);
       throw new BadRequestException(`Webhook Error: ${err.message}`);
+    }
+
+    // All event specific logic happens here
+    try {
+      this.stripeWebhooksService.handleEvent(event);
+    } catch (err: any) {
+      console.log(err);
     }
 
     // Log scope, event type, connected account ID (if present), and full payload

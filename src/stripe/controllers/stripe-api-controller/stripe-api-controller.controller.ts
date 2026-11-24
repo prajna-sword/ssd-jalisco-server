@@ -1,4 +1,4 @@
-import { Body, Controller, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Req } from '@nestjs/common';
 import { RoomSelection } from 'src/payments/dto/create-payment.dto';
 import { StripeCheckoutSessionService } from 'src/stripe/services/stripe-checkout-session-service/stripe-checkout-session.service';
 import { StripeConnectService } from 'src/stripe/services/stripe-connect-service/stripe-connect.service';
@@ -46,5 +46,33 @@ export class StripeApiController {
     @Post('/release/:paymentIntentId')
     async releaseHold(@Param('paymentIntentId') paymentIntentId: string) {
         return this.stripePaymentService.releaseHold(paymentIntentId);
+    }
+
+    // 1. Hotel clicks "Set up Payouts" OR gets redirected to refresh_url
+    @Post('onboarding-link')
+    async startOrResumeOnboarding(@Req() req: any) {
+        // Replace with your actual authenticated hotel lookup
+        const hotel = req.user.hotel;
+
+        const result = await this.stripeConnectService.createOnboardingLink({
+            hotelId: hotel.id,
+            email: hotel.ownerEmail,
+            businessName: hotel.name,
+            country: hotel.country || 'MX',
+            existingStripeAccountId: hotel.stripeAccountId,
+        });
+
+        // Ensure hotel.stripeAccountId is persisted in your DB if newly created
+        return { url: result.onboardingUrl };
+    }
+
+    // 2. Hotel clicks "View Payouts / Bank Settings" after onboarding is complete
+    @Get('dashboard-link')
+    async getExpressDashboard(@Req() req: any) {
+        const hotel = req.user.hotel;
+        const url = await this.stripeConnectService.createExpressDashboardLink(
+            hotel.stripeAccountId,
+        );
+        return { url };
     }
 }
