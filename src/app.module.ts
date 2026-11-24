@@ -13,6 +13,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { RefundModule } from './payments/refund.module';
 import { WeatherModule } from './weather/weather.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { StripeWebhooksModule } from './stripe-webhooks/stripe-webhooks.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -35,6 +36,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule,
     WeatherModule,
     NotificationsModule,
+    StripeWebhooksModule,
   ],
   controllers: [],
   providers: [],
