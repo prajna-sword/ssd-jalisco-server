@@ -13,4 +13,9 @@ export class GuestsController {
   findClientGuests(@Param('id') clientPageId:  string) {
     return this.guestsService.findClientGuests(clientPageId);
   }
+
+  @Get('/:id/detail')
+  getGuestDetail(@Param('id') guestId: string) {
+    return this.guestsService.getGuestDetail(guestId);
+  }
 }
