@@ -1,0 +1,68 @@
+import {
+    Column,
+    CreateDateColumn,
+    Entity,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+} from 'typeorm';
+
+
+@Entity('clients')
+export class Client {
+    @PrimaryGeneratedColumn('identity', { type: 'bigint', name: 'client_id' })
+    clientId: string;
+
+    @Column({ type: 'text', name: 'client_name', nullable: true })
+    clientName: string | null;
+
+    @Column({
+        name: 'stripe_account_id',
+        type: 'varchar',
+        length: 255,
+        unique: true,
+        nullable: true,
+    })
+    stripeAccountId: string | null;
+
+    @Column({
+        name: 'stripe_onboarding_complete',
+        type: 'boolean',
+        default: false,
+    })
+    stripeOnboardingComplete: boolean;
+
+    @Column({
+        name: 'stripe_charges_enabled',
+        type: 'boolean',
+        default: false,
+    })
+    stripeChargesEnabled: boolean;
+
+    @Column({
+        name: 'stripe_payouts_enabled',
+        type: 'boolean',
+        default: false,
+    })
+    stripePayoutsEnabled: boolean;
+
+    @Column({
+        name: 'stripe_requirements_due',
+        type: 'jsonb',
+        default: () => "'[]'",
+    })
+    stripeRequirementsDue: string[];
+
+    @CreateDateColumn({
+        type: 'timestamp',
+        name: 'created_timestamp',
+        default: () => 'now()',
+    })
+    createdTimestamp: Date;
+
+    @UpdateDateColumn({
+        type: 'timestamp',
+        name: 'updated_timestamp',
+        default: () => 'now()',
+    })
+    updatedTimestamp: Date;
+}

@@ -4,16 +4,17 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ClientPagesModule } from './client/client-pages/client-pages.module';
+import { ClientsModule } from './client/clients/clients.module';
 import { EmployeesModule } from './client/employees/employees.module';
 import { EventsModule } from './events/events.module';
 import { BookingsModule } from './lodging/bookings/bookings.module';
 import { GuestsModule } from './lodging/guests/guests.module';
 import { RoomsModule } from './lodging/rooms/rooms.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentsModule } from './payments/payments.module';
 import { RefundModule } from './payments/refund.module';
+import { StripeModule } from './stripe/stripe.module';
 import { WeatherModule } from './weather/weather.module';
-import { NotificationsModule } from './notifications/notifications.module';
-import { StripeWebhooksModule } from './stripe-webhooks/stripe-webhooks.module';
 
 @Module({
   imports: [BookingsModule, EventsModule, RoomsModule, GuestsModule, PaymentsModule,
@@ -36,7 +37,8 @@ import { StripeWebhooksModule } from './stripe-webhooks/stripe-webhooks.module';
     AuthModule,
     WeatherModule,
     NotificationsModule,
-    StripeWebhooksModule,
+    StripeModule,
+    ClientsModule,
   ],
   controllers: [],
   providers: [],
