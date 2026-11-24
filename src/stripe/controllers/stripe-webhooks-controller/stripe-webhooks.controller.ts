@@ -37,12 +37,15 @@ export class StripeWebhooksController {
     @Headers('stripe-signature') signature: string,
     @Req() req: RawBodyRequest<Request>,
   ) {
+
+    // Verify request and signature exist;
     if (!req.rawBody || !signature) {
       throw new BadRequestException('Missing raw body or Stripe signature');
     }
 
     let event: Stripe.Event;
 
+    // Verify signature and create event data
     try {
       event = this.stripe.webhooks.constructEvent(
         req.rawBody,
@@ -54,21 +57,13 @@ export class StripeWebhooksController {
       throw new BadRequestException(`Webhook Error: ${err.message}`);
     }
 
-    // All event specific logic happens here
+    // Process event
     try {
-      this.stripeWebhooksService.handleEvent(event);
+      const result = await this.stripeWebhooksService.handleEvent(event);
+      console.log(result);
     } catch (err: any) {
       console.log(err);
     }
-
-    // Log scope, event type, connected account ID (if present), and full payload
-    this.logger.log(`=========================================`);
-    this.logger.log(`Scope:   ${scope.toUpperCase()}`);
-    this.logger.log(`Event:   ${event.type} (${event.id})`);
-    if (event.account) {
-      this.logger.log(`Account: ${event.account}`);
-    }
-    this.logger.debug(`Payload: ${JSON.stringify(event.data.object, null, 2)}`);
 
     return { received: true };
   }

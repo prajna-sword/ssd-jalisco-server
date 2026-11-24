@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { RoomsModule } from 'src/lodging/rooms/rooms.module';
+import { StripeWebhookEventEntity } from 'src/stripe/entities/stripe-webhook-event.entity';
 import { StripeApiController } from './controllers/stripe-api-controller/stripe-api-controller.controller';
 import { StripeWebhooksController } from './controllers/stripe-webhooks-controller/stripe-webhooks.controller';
 import { StripeCheckoutSessionService } from './services/stripe-checkout-session-service/stripe-checkout-session.service';
@@ -10,6 +12,7 @@ import { StripeWebhooksService } from './services/stripe-webhook-service/stripe-
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([StripeWebhookEventEntity]),
     RoomsModule
   ],
   controllers: [

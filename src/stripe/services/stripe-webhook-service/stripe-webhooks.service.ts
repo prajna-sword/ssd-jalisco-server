@@ -1,18 +1,64 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { StripeWebhookEventEntity } from 'src/stripe/entities/stripe-webhook-event.entity';
 import { StripeWebhookEvent } from 'src/stripe/models/stripe.constants';
 import Stripe from 'stripe';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class StripeWebhooksService {
     private readonly stripe: Stripe;
+    private readonly logger = new Logger(StripeWebhooksService.name);
 
-    constructor() {
+    constructor(private readonly dataSource: DataSource) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
             apiVersion: process.env.STRIPE_API_VERSION as any, // Use your dashboard's pinned API version
         });
     }
 
-    handleEvent(event: Stripe.Event): void {
+    async handleEvent(event: Stripe.Event): Promise<{ received: boolean, duplicate?:  boolean }> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // Claim the event ID
+            await queryRunner.manager.insert(StripeWebhookEventEntity, {
+                eventId: event.id,
+                eventType: event.type,
+                status: 'processing',
+            });
+
+            // Handles specific business logic for each event type
+            await this.handleEventType(event, queryRunner);
+
+            // 4. Mark processed & commit
+            await queryRunner.manager.update(
+                StripeWebhookEventEntity,
+                { eventId: event.id },
+                { status: 'processed', processedAt: new Date() },
+            );
+
+            await queryRunner.commitTransaction();
+            return { received: true };
+
+        } catch (err: any) {
+            await queryRunner.rollbackTransaction();
+
+            // Catch Postgres unique constraint violation (duplicate event)
+            const pgErrorCode = err?.code || err?.driverError?.code;
+            if (pgErrorCode === '23505') {
+                this.logger.log(`Duplicate Stripe event ignored: ${event.id}`);
+                return { received: true, duplicate: true };
+            }
+
+            this.logger.error(`Failed processing event ${event.id}`, err.stack);
+            throw new InternalServerErrorException('Webhook processing failed');
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+    async handleEventType(event: Stripe.Event, queryRunner: any): Promise<void> {
         switch (event.type as StripeWebhookEvent) {
             // ==========================================
             // 1. CHECKOUT SESSIONS (QR Code Flows)
@@ -149,4 +195,11 @@ export class StripeWebhooksService {
                 break;
         }
     }
+
+
+
+
+
+
+
 }
