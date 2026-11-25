@@ -85,7 +85,7 @@ export class GuestsService {
      guestDeviceId: 'fake-device-id',
      guestInet: '0.0.0.0',
      guestId: matchingGuests[0].guestId,
-     stripeCustId: matchingGuests[0].guestId
+     stripeCustId: matchingGuests[0].stripeCustId
     });
 
     return await this.guestRepository.save(updatedGuest);

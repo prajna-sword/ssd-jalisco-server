@@ -93,34 +93,34 @@ export class StripeWebhooksService {
             // 2. PAYMENT INTENTS (Holds, Captures, Releases & Incidentals)
             // ==========================================
             case StripeWebhookEvent.PAYMENT_INTENT_AMOUNT_CAPTURABLE_UPDATED:
-                this.handlePaymentIntentCaptureUpdate(event, queryRunner);
+                await this.handlePaymentIntentCaptureUpdate(event, queryRunner);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_SUCCEEDED:
-                this.handlePaymentIntentSuccess(event, queryRunner);
+                await this.handlePaymentIntentSuccess(event, queryRunner);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_CANCELED:
-                this.handlePaymentIntentCancel(event, queryRunner);
+                await this.handlePaymentIntentCancel(event, queryRunner);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_PAYMENT_FAILED:
-                this.handlePaymentIntentFailure(event, queryRunner);
+                await this.handlePaymentIntentFailure(event, queryRunner);
                 break;
 
             // ==========================================
             // 3. CHARGES & REFUNDS (Post-Capture Disputes & Refunds)
             // ==========================================
             case StripeWebhookEvent.CHARGE_REFUNDED:
-                this.handleChargeRefunded(event, queryRunner);
+                await this.handleChargeRefunded(event, queryRunner);
                 break;
 
             case StripeWebhookEvent.CHARGE_DISPUTE_CREATED:
-                this.handleChargeDispute(event, queryRunner);
+                await this.handleChargeDispute(event, queryRunner);
                 break;
 
             case StripeWebhookEvent.CHARGE_DISPUTE_CLOSED:
-                this.handleChargeDisputeClosed(event, queryRunner);
+                await this.handleChargeDisputeClosed(event, queryRunner);
                 break;
 
             // ==========================================
@@ -150,10 +150,10 @@ export class StripeWebhooksService {
             // 5. CONNECT ACCOUNTS (Express Client Onboarding - Connect Scope)
             // ==========================================
             case StripeWebhookEvent.ACCOUNT_UPDATED:
-                this.handleAccountUpdate(event, queryRunner);
+                await this.handleAccountUpdate(event, queryRunner);
                 break;
             case StripeWebhookEvent.ACCOUNT_APPLICATION_DEAUTHORIZED:
-                this.handleAccountDeauthorized(event, queryRunner);
+                await this.handleAccountDeauthorized(event, queryRunner);
                 break;
             case StripeWebhookEvent.CAPABILITY_UPDATED:
                 const capability = event.data.object as Stripe.Capability;
@@ -212,13 +212,17 @@ export class StripeWebhooksService {
                 : pi.payment_method?.id;
 
         const paymentRepo = queryRunner.manager.getRepository(Payment);
-        const bookingRepo = queryRunner.manage.getRepository(Booking);
+        const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
             where: {
-                paymentIntetId: pi.id
+                paymentIntentId: pi.id
             },
-            relations: ['booking', 'booking.guest']
+            relations: {
+                booking: {
+                    guest: true
+                }
+            }
         });
 
         if (!payment) {
@@ -245,11 +249,13 @@ export class StripeWebhooksService {
                 : pi.payment_method?.id;
 
         const paymentRepo = queryRunner.manager.getRepository(Payment);
-        const bookingRepo = queryRunner.manage.getRepository(Booking);
+        const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
             where: { stripePaymentIntentId: pi.id },
-            relations: ['booking'],
+            relations: {
+                booking: true
+            },
         });
 
         if (!payment) {
@@ -291,11 +297,13 @@ export class StripeWebhooksService {
         const pi = event.data.object as Stripe.PaymentIntent;
 
         const paymentRepo = queryRunner.manager.getRepository(Payment);
-        const bookingRepo = queryRunner.manage.getRepository(Booking);
+        const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
             where: { paymentIntentId: pi.id },
-            relations: ['booking'],
+            relations: {
+                booking: true
+            },
         });
 
         if (!payment || payment.paymentStatus === PaymentStatuses.CANCELED) {
@@ -330,11 +338,13 @@ export class StripeWebhooksService {
         const errorMessage = pi.last_payment_error?.message || 'Payment failed';
         const declineCode = pi.last_payment_error?.decline_code;
 
-        const paymentRepo = queryRunner.manage.getRepository(Payment);
+        const paymentRepo = queryRunner.manager.getRepository(Payment);
 
         const payment = await paymentRepo.findOne({
             where: { stripePaymentIntentId: pi.id },
-            relations: ['booking'],
+            relations: {
+                booking: true
+            },
         });
 
         if (!payment) {
@@ -365,11 +375,13 @@ export class StripeWebhooksService {
         }
 
         const paymentRepo = queryRunner.manager.getRepository(Payment);
-        const bookingRepo = queryRunner.manage.getRepository(Booking);
+        const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
             where: { paymentIntentId: paymentIntentId },
-            relations: ['booking'],
+            relations: {
+                booking: true
+            },
         });
 
         if (!payment) {
@@ -406,11 +418,15 @@ export class StripeWebhooksService {
         };
 
         const paymentRepo = queryRunner.manager.getRepository(Payment);
-        const bookingRepo = queryRunner.manage.getRepository(Booking);
+        const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
             where: { stripePaymentIntentId: paymentIntentId },
-            relations: ['booking', 'booking.guest'],
+            relations: {
+                booking: {
+                    guest: true
+                }
+            },
         });
 
         if (!payment) {
@@ -455,11 +471,13 @@ export class StripeWebhooksService {
         }
 
         const paymentRepo = queryRunner.manager.getRepository(Payment);
-        const bookingRepo = queryRunner.manage.getRepository(Booking);
+        const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
             where: { stripePaymentIntentId: paymentIntentId },
-            relations: ['booking'],
+            relations: {
+                booking: true
+            },
         });
 
         if (!payment) {

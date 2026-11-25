@@ -41,12 +41,12 @@ export class RefundService {
 
 
       const stripeResponse = await this.stripe.refunds.create({
-        payment_intent: payment?.stripePaymentId,
-        amount: this.moneyToNumber(payment?.paymentAmount as any) * 100 // total in cents
+        payment_intent: payment?.paymentIntentId,
+        amount: this.moneyToNumber(payment?.intentAmount as any) * 100 // total in cents
       });
 
 
-      await this.paymentsService.refundPayment(payment?.stripePaymentId as string, payment?.paymentAmount as any);
+      await this.paymentsService.refundPayment(payment?.paymentIntentId as string, payment?.intentAmount as any);
       if (payload.bookedRoomIds.length === savedBooking.bookedRooms.length) {
         await this.bookingsService.cancelBooking(savedBooking);
       }
