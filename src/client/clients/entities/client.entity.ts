@@ -52,6 +52,16 @@ export class Client {
     })
     stripeRequirementsDue: string[];
 
+    @Column({
+        name: 'stripe_account_closed',
+        type: 'boolean',
+        default: false,
+    })
+    stripeAccountClosed: boolean;
+
+    @Column({ type: 'text', name: 'disabled_reason', nullable: true })
+    disabledReason: string | null;
+
     @CreateDateColumn({
         type: 'timestamp',
         name: 'created_timestamp',

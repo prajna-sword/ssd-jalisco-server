@@ -73,8 +73,8 @@ export class StripeConnectService {
                 type: 'account_onboarding',
                 account_onboarding: {
                     configurations: ['recipient'],
-                    refresh_url: `${frontendUrl}/settings&refresh=true`,
-                    return_url: `${frontendUrl}/settings&return=true`,
+                    refresh_url: `${frontendUrl}/settings?refresh=true`,
+                    return_url: `${frontendUrl}/settings?return=true`,
                     collection_options: {
                         fields: 'currently_due',
                     },

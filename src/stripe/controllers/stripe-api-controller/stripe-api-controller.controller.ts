@@ -65,9 +65,9 @@ export class StripeApiController {
 
     // 2. Hotel clicks "View Payouts / Bank Settings" after onboarding is complete
     @Get('dashboard-link')
-    async getExpressDashboard(@Query('stripeId') stripeId: string) {
+    async getExpressDashboard(@Query('accountId') accountId: string) {
         const url = await this.stripeConnectService.createExpressDashboardLink(
-            stripeId,
+            accountId,
         );
         return { url };
     }

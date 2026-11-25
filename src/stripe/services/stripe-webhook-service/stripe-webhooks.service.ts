@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Client } from 'src/client/clients/entities/client.entity';
 import { StripeWebhookEventEntity } from 'src/stripe/entities/stripe-webhook-event.entity';
 import { StripeWebhookEvent } from 'src/stripe/models/stripe.constants';
 import Stripe from 'stripe';
@@ -168,14 +169,29 @@ export class StripeWebhooksService {
             // ==========================================
             case StripeWebhookEvent.ACCOUNT_UPDATED:
                 const account = event.data.object as Stripe.Account;
-                console.log(account);
+                await queryRunner.manager.update(Client,
+                    { stripeAccountId: account.id },
+                    {
+                        stripePayoutsEnabled: account.payouts_enabled,
+                        stripeChargesEnabled: account.charges_enabled,
+                        stripeOnboardingComplete: account.details_submitted,
+                        stripeRequirementsDue: account.requirements?.currently_due || [],
+                        disabledReason: account.requirements?.disabled_reason || null,
+                    });
                 break;
-
             case StripeWebhookEvent.ACCOUNT_APPLICATION_DEAUTHORIZED:
-                const application = event.data.object as Stripe.Application;
-                console.log(application);
+                const closedAccountId = event.account;
+                await queryRunner.manager.update(Client,
+                    { stripeAccountId: closedAccountId },
+                    {
+                        stripePayoutsEnabled: false,
+                        stripeChargesEnabled: false,
+                        stripeOnboardingComplete: false,
+                        stripeAccountClosed: true,
+                        stripeRequirementsDue: [],
+                        disabledReason: 'closed_by_user'
+                    });
                 break;
-
             case StripeWebhookEvent.CAPABILITY_UPDATED:
                 const capability = event.data.object as Stripe.Capability;
                 console.log(capability);
