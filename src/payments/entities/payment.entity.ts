@@ -1,4 +1,4 @@
-import { Booking } from 'src/lodging/bookings/entities/booking.entity';
+import * as BookingModule from 'src/lodging/bookings/entities/booking.entity';
 import {
   Column,
   CreateDateColumn,
@@ -6,8 +6,10 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
+
+import * as typeorm from 'typeorm';
 
 @Entity({ name: 'payments' })
 export class Payment {
@@ -36,11 +38,11 @@ export class Payment {
   })
   bookingId: string;
 
-  @ManyToOne(() => Booking, (booking) => booking.payments, {
+  @ManyToOne(() => BookingModule.Booking, (booking) => booking.payments, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'booking_id' })
-  booking: Booking;
+  booking: typeorm.Relation<BookingModule.Booking>;
 
   @Column({
     type: 'money',
