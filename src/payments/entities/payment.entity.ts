@@ -1,7 +1,10 @@
+import { Booking } from 'src/lodging/bookings/entities/booking.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -33,11 +36,24 @@ export class Payment {
   })
   bookingId: string;
 
+  @ManyToOne(() => Booking, (booking) => booking.payments, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'booking_id' })
+  booking: Booking;
+
   @Column({
     type: 'money',
-    name: 'payment_amount',
+    name: 'intent_amount',
   })
-  paymentAmount: string;
+  intentAmount: string;
+
+  @Column({
+    type: 'money',
+    name: 'captured_amount',
+    nullable: true
+  })
+  capturedAmount: string;
 
   @Column({
     type: 'text',
@@ -50,6 +66,20 @@ export class Payment {
     name: 'payment_status',
   })
   paymentStatus: string;
+
+  @Column({
+    type: 'text',
+    name: 'failure_reason',
+    nullable: true
+  })
+  failureReason: string;
+
+  @Column({
+    type: 'text',
+    name: 'dispute_id',
+    nullable: true
+  })
+  disputeId: string;
 
   @Column({
     type: 'boolean',

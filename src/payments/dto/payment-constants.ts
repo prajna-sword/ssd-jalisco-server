@@ -9,5 +9,10 @@ export enum PaymentStatuses {
     CAPTURED = 'captured',
     HOLD_EXPIRED = 'hold_expired',
     CANCELED = 'canceled',
-    COMPLETE = 'complete'
+    COMPLETE = 'complete',
+    FAILED = 'failed',
+    REFUNDED = 'refunded',
+    PARTIALLY_REFUNDED = 'partially_refunded',
+    DISPUTED = 'disputed',
+    DISPUTE_LOST = 'dispute_lost'
 }

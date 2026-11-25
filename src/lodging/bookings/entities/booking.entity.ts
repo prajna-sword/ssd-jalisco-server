@@ -1,4 +1,5 @@
 import { Guest } from 'src/lodging/guests/entities/guest.entity';
+import { Payment } from 'src/payments/entities/payment.entity';
 import {
   Column,
   CreateDateColumn,
@@ -78,4 +79,7 @@ export class Booking {
 
   @OneToMany(() => BookedRoom, (bookedRoom) => bookedRoom.booking)
   bookedRooms: BookedRoom[];
+
+  @OneToMany(() => Payment, (payment) => payment.booking)
+  payments: Payment[];
 }

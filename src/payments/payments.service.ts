@@ -57,7 +57,7 @@ export class PaymentsService {
     const payment = new Payment();
     payment.bookingId = bookingId;
     payment.guestId = guestId;
-    payment.paymentAmount = totalAmount;
+    payment.intentAmount = totalAmount;
     payment.paymentType = PaymentTypes.ROOM_HOLD;
     payment.paymentStatus = PaymentStatuses.PENDING;
     payment.isRefunded = false;

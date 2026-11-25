@@ -1,8 +1,9 @@
 export enum BookingStatus {
     PENDING = 'pending',
-    AUTHORIZED = 'authorized',
-    CAPTURED = 'captured',
-    HOLD_EXPIRED = 'hold_expired',
+    CONFIRMED = 'confirmed',
     CANCELED = 'canceled',
-    COMPLETE = 'complete'
+    HOLD_EXPIRED = 'hold_expired',
+    COMPLETE = 'complete',
+    DISPUTED = 'disputed',
+    DISPUTE_LOST = 'dispute_lost'
 }
