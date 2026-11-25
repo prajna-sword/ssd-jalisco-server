@@ -29,7 +29,6 @@ export class StripeConnectService {
         country?: string; // Defaults to 'MX'
         existingStripeAccountId?: string | null;
     }): Promise<{ stripeAccountId: string; onboardingUrl: string }> {
-        console.log(params);
         let accountId = params.existingStripeAccountId;
 
         // 1. Create the Express account only if the hotel doesn't have one yet
@@ -111,7 +110,7 @@ export class StripeConnectService {
         }
 
         // If they haven't even created a Stripe Connect account ID yet
-        if (!client.stripeAccountId) {
+        if (!client.stripeAccountId || client.stripeAccountClosed) {
             return {
                 detailsSubmitted: false,
                 chargesEnabled: false,

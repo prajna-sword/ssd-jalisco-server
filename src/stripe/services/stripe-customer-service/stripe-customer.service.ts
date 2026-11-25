@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 
 @Injectable()
-export class StripeCustomerService{
+export class StripeCustomerService {
     private readonly stripe: Stripe;
 
     constructor() {
@@ -10,4 +10,14 @@ export class StripeCustomerService{
             apiVersion: process.env.STRIPE_API_VERSION as any, // Use your dashboard's pinned API version
         });
     }
+
+    async createCustomer(name: string, email: string, phone: string): Promise<string> {
+        const customer = await this.stripe.customers.create({
+            email,
+            name,
+            phone
+        })
+        return customer.id;
+    }
+
 }

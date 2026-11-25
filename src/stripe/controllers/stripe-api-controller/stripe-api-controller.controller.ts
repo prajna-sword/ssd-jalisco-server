@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
-import { RoomSelection } from 'src/payments/dto/create-payment.dto';
+import * as bookingPayloadDto from 'src/lodging/bookings/dto/booking-payload.dto';
 import { StripeCheckoutSessionService } from 'src/stripe/services/stripe-checkout-session-service/stripe-checkout-session.service';
 import { StripeConnectService } from 'src/stripe/services/stripe-connect-service/stripe-connect.service';
 import { StripeCustomerService } from 'src/stripe/services/stripe-customer-service/stripe-customer.service';
@@ -16,12 +16,11 @@ export class StripeApiController {
     @Inject(StripeCustomerService)
     private readonly stripeCustomerService: StripeCustomerService;
 
-    @Post('/create-intent/:clientPageId') // Enforces POST /payment/create-intent
+    @Post('/create-intent')
     async createIntent(
-        @Param('clientPageId') clientPageId: string,
-        @Body() body: RoomSelection[]
+        @Body() body: bookingPayloadDto.BookingPayload
     ) {
-        return await this.stripePaymentService.generateCheckoutIntent(clientPageId, body);
+        return await this.stripePaymentService.generateCheckoutIntent(body);
     }
 
     // For manual capture feature

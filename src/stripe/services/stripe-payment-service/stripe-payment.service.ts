@@ -1,6 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BookingPayload } from 'src/lodging/bookings/dto/booking-payload.dto';
+import { GuestsService } from 'src/lodging/guests/guests.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
-import { RoomSelection } from 'src/payments/dto/create-payment.dto';
+import { StripeCustomerService } from 'src/stripe/services/stripe-customer-service/stripe-customer.service';
 import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
 import Stripe from 'stripe';
 
@@ -9,6 +11,10 @@ export class StripePaymentService {
     private readonly stripe: Stripe;
     @Inject(RoomsService)
     private readonly roomService: RoomsService;
+    @Inject(StripeCustomerService)
+    private readonly customerService: StripeCustomerService;
+    @Inject(GuestsService)
+    private readonly guestsService: GuestsService;
 
     constructor() {
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -16,41 +22,50 @@ export class StripePaymentService {
         });
     }
 
-    // TODO -- verify that the current calculation method is safe since the amount of 
-    // days will have to be passed from the UI and it could be mutable?
-    async generateCheckoutIntent(clientPageId: string, bookingDetails: RoomSelection[]) {
-        const rooms = await this.roomService.findByClientPageId(clientPageId);
-
-        let totalAmount = calculateBookingTotalV2(bookingDetails, rooms);
-
-        // 2. Stripe expects integers in the smallest currency unit (cents/sub-currency)
-        // $100.50 USD becomes 10050 cents. (If using MXN, pesos also use cents)
+    async generateCheckoutIntent(
+        booking: BookingPayload
+    ) {
+        /** Calculate Room Total */
+        const rooms = await this.roomService.findByClientPageId(booking.clientPageId);
+        let totalAmount = calculateBookingTotalV2(booking.rooms, rooms);
         const amountInCents = Math.round(totalAmount * 100);
 
-        // 3. Create the payment intent object on Stripe's cloud API
+        /** Find or Create Guest Entity  */
+        let existingGuest = await this.guestsService.findBookingGuest(booking);
+
+        /** Create Customer & Guest if not exists */
+        let customerId = existingGuest?.stripeCustId;
+        if (!existingGuest || !customerId) {
+            customerId = await this.customerService.createCustomer(
+                booking.guest.guestName,
+                booking.guest.emailAddress,
+                booking.guest.phoneNumber
+            );
+            await this.guestsService.createBookingGuest(booking, customerId);
+        }
+
+
+        /** Create the payment intent to place hold */
         const intent = await this.stripe.paymentIntents.create({
             amount: amountInCents,
-            currency: 'mxn', // or 'mxn' if pricing natively in Mexican Pesos
-            setup_future_usage: 'off_session', // 👈 Must match the client-side configuration!
-            // Highly recommended for elements: allows automatic support for card, Link, ApplePay, etc.
+            currency: 'mxn',
+            customer: customerId,
+            capture_method: 'manual',
+            setup_future_usage: 'off_session',
             automatic_payment_methods: {
                 enabled: true,
+                allow_redirects: 'never'
             },
-
-            // Optional metadata tracker to match Stripe dashboard entries to your local DB
-            // metadata: {
-            //   hotelLocation: 'Jalisco_Mexico',
-            //   roomIds: roomIdString,
-            //   totalNights: nights.toString(),
-            // },
+            // ...(params.connectedAccountId && {
+            //     transfer_data: { destination: params.connectedAccountId },
+            //     application_fee_amount: params.applicationFeeAmount,
+            // }),
         });
 
-        // 4. Return the unique client secret safely back to the client app
         return {
             clientSecret: intent.client_secret,
             totalAmountUSD: totalAmount,
         };
-
     } catch(error) {
         throw new BadRequestException(`Stripe Intent failed: ${(error as Error).message}`);
     }

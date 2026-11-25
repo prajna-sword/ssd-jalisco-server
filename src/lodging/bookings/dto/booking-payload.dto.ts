@@ -22,7 +22,7 @@ export interface BookingPayload {
   rooms: RoomSelection[];
   guest: GuestDetails;
   currentTotal: number;
-  stripePaymentIntentId: string;
+  stripePaymentIntentId: string | null;
   clientPageId: string;
   paymentComplete: boolean;
 }
