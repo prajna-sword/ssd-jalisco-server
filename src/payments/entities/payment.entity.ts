@@ -34,13 +34,6 @@ export class Payment {
   bookingId: string;
 
   @Column({
-    type: 'bigint',
-    name: 'multi_booking_xref_id',
-    nullable: true
-  })
-  multiBookingXrefId: string;
-
-  @Column({
     type: 'money',
     name: 'payment_amount',
   })
@@ -48,9 +41,15 @@ export class Payment {
 
   @Column({
     type: 'text',
-    name: 'stripe_payment_id',
+    name: 'payment_intent_id',
   })
-  stripePaymentId: string;
+  paymentIntentId: string;
+
+  @Column({
+    type: 'text',
+    name: 'payment_status',
+  })
+  paymentStatus: string;
 
   @Column({
     type: 'boolean',

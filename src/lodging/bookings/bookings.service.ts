@@ -1,15 +1,13 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientPagesService } from 'src/client/client-pages/client-pages.service';
+import { BookingStatus } from 'src/lodging/bookings/dto/booking-constants';
 import { BookedRoom } from 'src/lodging/bookings/entities/booked-room.entity';
-import { Guest } from 'src/lodging/guests/entities/guest.entity';
 import { GuestsService } from 'src/lodging/guests/guests.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { Payment } from 'src/payments/entities/payment.entity';
 import { PaymentsService } from 'src/payments/payments.service';
-import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { BookingLookupPayload } from './dto/booking-lookup-payload.dto';
 import { BookingPayload } from './dto/booking-payload.dto';
 import { Booking } from './entities/booking.entity';
@@ -80,39 +78,28 @@ export class BookingsService {
       .getMany();
   }
 
-  // TODO -- save weekly rate when weekly booking
-  async createBooking(bookingPayload: BookingPayload): Promise<Object> {
-
-    const guest = new Guest();
-    guest.fullName = bookingPayload.guest.guestName;
-    guest.emailAddress = bookingPayload.guest.emailAddress;
-    guest.phoneNumber = bookingPayload.guest.phoneNumber;
-    guest.addrLineOne = bookingPayload.guest.guestBillingAddress.line1;
-    guest.addrLineTwo = bookingPayload.guest.guestBillingAddress.line2;
-    guest.addrCity = bookingPayload.guest.guestBillingAddress.city;
-    guest.addrCountry = bookingPayload.guest.guestBillingAddress.country;
-    guest.addrZipCode = bookingPayload.guest.guestBillingAddress.postalCode
-    guest.addrStateOrProvince = bookingPayload.guest.guestBillingAddress.state;
-    guest.stripeCustId = 'fake-customer-id';
-    guest.guestDeviceId = 'fake-device-id';
-    guest.guestInet = '0.0.0.0';
-    let savedGuest = await this.guestsService.save(guest);
+  async createPendingBooking(
+    bookingPayload: BookingPayload,
+    guestId: string,
+    manager?: EntityManager
+  ): Promise<Booking> {
+    const bookingRepo = manager ? manager.getRepository(Booking) : this.bookingRepository;
+    const roomRepo = manager ? manager.getRepository(BookedRoom) : this.bookedRoomRepository;
 
     const booking = new Booking();
-    booking.guestId = savedGuest.guestId;
+    booking.guestId = guestId;
     booking.clientPageId = bookingPayload.clientPageId;
-    let savedBooking = await this.bookingRepository.save(booking);
-
+    booking.bookingStatus = BookingStatus.PENDING;
+    booking.paymentMethodPreview = bookingPayload.paymentMethodPreview;
+    let savedBooking = await bookingRepo.save(booking);
     const rooms = await this.roomsService.findByClientPageId(bookingPayload.clientPageId);
-    let totalAmount = calculateBookingTotalV2(bookingPayload.rooms, rooms);
-
     const bookedRooms: BookedRoom[] = [];
     for (let roomSelection of bookingPayload.rooms) {
       let matchingRoom = rooms.find(room => room.roomId == roomSelection.roomId);
       if (matchingRoom) {
         const bookedRoom = new BookedRoom();
         bookedRoom.bookingId = savedBooking.bookingId;
-        bookedRoom.guestId = savedGuest.guestId;
+        bookedRoom.guestId = guestId;
         bookedRoom.clientPageId = bookingPayload.clientPageId;
         bookedRoom.roomId = matchingRoom.roomId;
         bookedRoom.checkInDate = roomSelection.checkInDate as any;
@@ -126,30 +113,16 @@ export class BookingsService {
         bookedRoom.bookedWeeklyRate = matchingRoom.weeklyRate;
         bookedRoom.bookedMonthlyRate = matchingRoom.monthlyRate;
         bookedRoom.pricingMode = matchingRoom.pricingMode;
-        const savedBookeRoom = await this.bookedRoomRepository.save(bookedRoom);
+        const savedBookeRoom = await roomRepo.save(bookedRoom);
         savedBookeRoom.room = matchingRoom;
         bookedRooms.push(savedBookeRoom);
       } else {
         throw new InternalServerErrorException('No matching room found for roomId: ' + roomSelection.roomId);
       }
     }
-
-    const payment = new Payment();
-    payment.bookingId = savedBooking.bookingId;
-    payment.guestId = savedGuest.guestId;
-    payment.paymentAmount = totalAmount as unknown as string;
-    payment.paymentType = 'hotel_booking';
-    payment.isRefunded = false;
-    payment.stripePaymentId = bookingPayload.stripePaymentIntentId;
-    await this.paymentsService.save(payment);
-
     const referenceId = savedBooking.bookingUuid;
-    // throw new Error('Stop booking so it wont redirect and you can resubmit over and over');
-
-    // Create a notification for the client to view in their dashboard
     savedBooking.bookedRooms = bookedRooms;
-    this.notificationService.createBookingNotification(savedBooking, savedGuest);
-    return { referenceId };
+    return savedBooking;
   }
 
   async doesBookingExist(referenceId: string): Promise<Object> {

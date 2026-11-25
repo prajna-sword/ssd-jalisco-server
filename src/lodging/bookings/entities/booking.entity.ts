@@ -27,6 +27,27 @@ export class Booking {
   @JoinColumn({ name: 'guest_id' })
   guest: Guest;
 
+  @Column({
+    type: 'text',
+    name: 'payment_method_id',
+    nullable: true
+  })
+  paymentMethodId: string;
+
+  @Column({
+    type: 'text',
+    name: 'booking_status',
+    nullable: true
+  })
+  bookingStatus: string;
+
+  @Column({
+    type: 'text',
+    name: 'payment_method_preview',
+    nullable: true
+  })
+  paymentMethodPreview: string;
+
   @Column({ type: 'boolean', name: 'is_canceled', default: false })
   isCanceled: boolean;
 

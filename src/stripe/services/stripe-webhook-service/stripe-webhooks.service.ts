@@ -89,17 +89,31 @@ export class StripeWebhooksService {
             // 2. PAYMENT INTENTS (Holds, Captures, Releases & Incidentals)
             // ==========================================
             case StripeWebhookEvent.PAYMENT_INTENT_AMOUNT_CAPTURABLE_UPDATED:
-                const paymentIntentAmountUpdated = event.data.object as Stripe.PaymentIntent;
-                console.log(paymentIntentAmountUpdated);
+                const pi = event.data.object as Stripe.PaymentIntent;
+                const customerId = typeof pi.customer === 'string' ? pi.customer : pi.customer?.id;
+                const paymentMethodId =
+                    typeof pi.payment_method === 'string'
+                        ? pi.payment_method
+                        : pi.payment_method?.id;
+
+                // TODO: Update your Booking in DB:
+                // - status = 'AUTHORIZED'
+                // - stripeCustomerId = customerId
+                // - stripePaymentMethodId = paymentMethodId (save this for incidentals!)
+                // - captureAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_SUCCEEDED:
                 const paymentIntentSucceeded = event.data.object as Stripe.PaymentIntent;
+                // Fires 5 days later when captureHold() succeeds (or when an incidental charge succeeds)
+                // TODO: Update Booking status = 'CAPTURED'
                 console.log(paymentIntentSucceeded);
                 break;
 
             case StripeWebhookEvent.PAYMENT_INTENT_CANCELED:
                 const paymentIntentCanceled = event.data.object as Stripe.PaymentIntent;
+                // Fires if the 7-day authorization window expires before capture or you cancel the hold
+                // TODO: Update Booking status = 'HOLD_EXPIRED'
                 console.log(paymentIntentCanceled);
                 break;
 

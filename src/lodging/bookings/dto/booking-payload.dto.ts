@@ -1,6 +1,7 @@
 import { RoomSelection } from "src/payments/dto/create-payment.dto";
 
 export interface GuestDetails {
+  guestId:  string | null;
   guestName: string;
   emailAddress: string;
   phoneNumber: string;
@@ -23,6 +24,7 @@ export interface BookingPayload {
   guest: GuestDetails;
   currentTotal: number;
   stripePaymentIntentId: string | null;
+  paymentMethodPreview: string;
   clientPageId: string;
   paymentComplete: boolean;
 }

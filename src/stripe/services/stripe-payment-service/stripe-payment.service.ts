@@ -1,10 +1,13 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BookingsService } from 'src/lodging/bookings/bookings.service';
 import { BookingPayload } from 'src/lodging/bookings/dto/booking-payload.dto';
 import { GuestsService } from 'src/lodging/guests/guests.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
+import { PaymentsService } from 'src/payments/payments.service';
 import { StripeCustomerService } from 'src/stripe/services/stripe-customer-service/stripe-customer.service';
 import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
 import Stripe from 'stripe';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class StripePaymentService {
@@ -15,8 +18,12 @@ export class StripePaymentService {
     private readonly customerService: StripeCustomerService;
     @Inject(GuestsService)
     private readonly guestsService: GuestsService;
+    @Inject(BookingsService)
+    private readonly bookingService: BookingsService;
+    @Inject(PaymentsService)
+    private readonly paymentService: PaymentsService;
 
-    constructor() {
+    constructor(private readonly dataSource: DataSource) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
             apiVersion: process.env.STRIPE_API_VERSION as any, // Use your dashboard's pinned API version
         });
@@ -41,9 +48,8 @@ export class StripePaymentService {
                 booking.guest.emailAddress,
                 booking.guest.phoneNumber
             );
-            await this.guestsService.createBookingGuest(booking, customerId);
+            existingGuest = await this.guestsService.createBookingGuest(booking, customerId);
         }
-
 
         /** Create the payment intent to place hold */
         const intent = await this.stripe.paymentIntents.create({
@@ -62,9 +68,28 @@ export class StripePaymentService {
             // }),
         });
 
+        const { savedBooking, savedPayment } = await this.dataSource.transaction(async (manager) => {
+            const newBooking = await this.bookingService.createPendingBooking(
+                booking,
+                existingGuest.guestId,
+                manager
+            );
+
+            const newPayment = await this.paymentService.createPending(
+                newBooking.bookingId,
+                existingGuest.guestId,
+                intent.id,
+                totalAmount as unknown as string,
+                manager,
+            );
+
+            return { savedBooking: newBooking, savedPayment: newPayment };
+        });
+
         return {
             clientSecret: intent.client_secret,
             totalAmountUSD: totalAmount,
+            bookingId: savedBooking.bookingUuid
         };
     } catch(error) {
         throw new BadRequestException(`Stripe Intent failed: ${(error as Error).message}`);

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { PaymentStatuses, PaymentTypes } from 'src/payments/dto/payment-constants';
+import { EntityManager, Repository } from 'typeorm';
 import { Payment } from './entities/payment.entity';
 
 
@@ -45,4 +46,22 @@ export class PaymentsService {
     }
   }
 
+  async createPending(
+    bookingId: string,
+    guestId: string,
+    paymentIntentId: string,
+    totalAmount: string,
+    manager?: EntityManager
+  ): Promise<Payment> {
+    const repo = manager ? manager.getRepository(Payment) : this.paymentRepository;
+    const payment = new Payment();
+    payment.bookingId = bookingId;
+    payment.guestId = guestId;
+    payment.paymentAmount = totalAmount;
+    payment.paymentType = PaymentTypes.ROOM_HOLD;
+    payment.paymentStatus = PaymentStatuses.PENDING;
+    payment.isRefunded = false;
+    payment.paymentIntentId = paymentIntentId;
+    return await repo.save(payment);
+  }
 }

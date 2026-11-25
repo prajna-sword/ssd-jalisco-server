@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Client } from 'src/client/clients/entities/client.entity';
+import { BookingsModule } from 'src/lodging/bookings/bookings.module';
 import { RoomsModule } from 'src/lodging/rooms/rooms.module';
+import { PaymentsModule } from 'src/payments/payments.module';
 import { StripeWebhookEventEntity } from 'src/stripe/entities/stripe-webhook-event.entity';
 import { StripeApiController } from './controllers/stripe-api-controller/stripe-api-controller.controller';
 import { StripeWebhooksController } from './controllers/stripe-webhooks-controller/stripe-webhooks.controller';
@@ -14,7 +16,9 @@ import { StripeWebhooksService } from './services/stripe-webhook-service/stripe-
 @Module({
   imports: [
     TypeOrmModule.forFeature([StripeWebhookEventEntity, Client]),
-    RoomsModule
+    RoomsModule,
+    BookingsModule,
+    PaymentsModule
   ],
   controllers: [
     StripeWebhooksController,
