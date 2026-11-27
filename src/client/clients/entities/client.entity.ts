@@ -2,9 +2,13 @@ import {
     Column,
     CreateDateColumn,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+
+import * as typeorm from 'typeorm';
+import * as clientPageModule from '../../client-pages/entities/client-page.entity';
 
 
 @Entity('clients')
@@ -75,4 +79,7 @@ export class Client {
         default: () => 'now()',
     })
     updatedTimestamp: Date;
+
+    @OneToMany(() => clientPageModule.ClientPage, (clientPage) => clientPage.client)
+    clientPages: typeorm.Relation<clientPageModule.ClientPage>;
 }

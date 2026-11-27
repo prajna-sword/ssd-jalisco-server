@@ -1,11 +1,16 @@
+import * as clientModule from '../../clients/entities/client.entity';
+
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+import * as typeorm from 'typeorm';
 
 @Entity('client_pages')
 export class ClientPage {
@@ -94,4 +99,10 @@ export class ClientPage {
     default: () => 'now()',
   })
   updatedTimestamp: Date;
+
+  @ManyToOne(() => clientModule.Client, (client) => client.clientPages, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'client_id' })
+  client: typeorm.Relation<clientModule.Client>;
 }

@@ -529,6 +529,7 @@ export class StripeWebhooksService {
                 stripeOnboardingComplete: account.details_submitted,
                 stripeRequirementsDue: account.requirements?.currently_due || [],
                 disabledReason: account.requirements?.disabled_reason || null,
+                stripeAccountClosed: false,
             });
     }
 
