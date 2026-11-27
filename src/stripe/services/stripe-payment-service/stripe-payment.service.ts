@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ClientsService } from 'src/client/clients/clients.service';
 import { BookingsService } from 'src/lodging/bookings/bookings.service';
 import { BookingStatus } from 'src/lodging/bookings/dto/booking-constants';
 import { BookingPayload } from 'src/lodging/bookings/dto/booking-payload.dto';
@@ -8,7 +9,7 @@ import { RoomsService } from 'src/lodging/rooms/rooms.service';
 import { PaymentTypes } from 'src/payments/dto/payment-constants';
 import { PaymentsService } from 'src/payments/payments.service';
 import { StripeCustomerService } from 'src/stripe/services/stripe-customer-service/stripe-customer.service';
-import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
+import { calculateApplicationFeeCentavos, calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
 import Stripe from 'stripe';
 import { DataSource } from 'typeorm';
 
@@ -25,6 +26,8 @@ export class StripePaymentService {
     private readonly bookingService: BookingsService;
     @Inject(PaymentsService)
     private readonly paymentService: PaymentsService;
+    @Inject(ClientsService)
+    private readonly clientService: ClientsService;
 
     constructor(private readonly dataSource: DataSource) {
         this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -38,10 +41,20 @@ export class StripePaymentService {
         /** Calculate Room Total */
         const rooms = await this.roomService.findByClientPageId(booking.clientPageId);
         let totalAmount = calculateBookingTotalV2(booking.rooms, rooms);
+        // TODO -- better calc
         const amountInCents = Math.round(totalAmount * 100);
+        const feeAmountInCents = calculateApplicationFeeCentavos(amountInCents, 10);
+        const netClientAmount = totalAmount - (feeAmountInCents / 100);
+
 
         /** Find or Create Guest Entity  */
         let existingGuest = await this.guestsService.findBookingGuest(booking);
+
+        const client = await this.clientService.getByClientPageId(booking.clientPageId);
+
+        if (!client || !client?.stripeAccountId) {
+            throw new NotFoundException('The client record for this transaction does not exist.');
+        }
 
         /** Create Customer & Guest if not exists */
         let customerId = existingGuest?.stripeCustId;
@@ -64,10 +77,10 @@ export class StripePaymentService {
             automatic_payment_methods: {
                 enabled: true,
             },
-            // ...(params.connectedAccountId && {
-            //     transfer_data: { destination: params.connectedAccountId },
-            //     application_fee_amount: params.applicationFeeAmount,
-            // }),
+            transfer_data: {
+                destination: client?.stripeAccountId as any, // Hotel's Express account
+            },
+            application_fee_amount: feeAmountInCents, // Your platform cut
         });
 
         const { savedBooking, savedPayment } = await this.dataSource.transaction(async (manager) => {
@@ -82,6 +95,7 @@ export class StripePaymentService {
                 existingGuest.guestId,
                 intent.id,
                 totalAmount as unknown as string,
+                netClientAmount as unknown as string,
                 manager,
             );
 

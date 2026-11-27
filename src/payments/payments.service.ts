@@ -51,6 +51,7 @@ export class PaymentsService {
     guestId: string,
     paymentIntentId: string,
     totalAmount: string,
+    netClientAmount: string,
     manager?: EntityManager
   ): Promise<Payment> {
     const repo = manager ? manager.getRepository(Payment) : this.paymentRepository;
@@ -58,6 +59,7 @@ export class PaymentsService {
     payment.bookingId = bookingId;
     payment.guestId = guestId;
     payment.intentAmount = totalAmount;
+    payment.netClientAmount = netClientAmount;
     payment.paymentType = PaymentTypes.ROOM_HOLD;
     payment.paymentStatus = PaymentStatuses.PENDING;
     payment.isRefunded = false;

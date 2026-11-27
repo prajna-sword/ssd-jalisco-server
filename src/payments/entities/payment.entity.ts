@@ -58,6 +58,13 @@ export class Payment {
   capturedAmount: string;
 
   @Column({
+    type: 'money',
+    name: 'net_client_amount',
+    nullable: true
+  })
+  netClientAmount: string;
+
+  @Column({
     type: 'text',
     name: 'payment_intent_id',
   })

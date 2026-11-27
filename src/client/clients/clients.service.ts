@@ -18,4 +18,11 @@ export class ClientsService {
             }
         })
     }
+
+    async getByClientPageId(clientPageId: string): Promise<Client | null> {
+        return await this.clientRepository.createQueryBuilder('client')
+        .leftJoinAndSelect('client.clientPages', 'page')
+        .where('page.clientPageId = :clientPageId', {clientPageId})
+        .getOne();
+    }
 }

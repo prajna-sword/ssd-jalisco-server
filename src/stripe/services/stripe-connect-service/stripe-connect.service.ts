@@ -58,6 +58,21 @@ export class StripeConnectService {
                 },
             });
 
+            await this.stripe.balanceSettings.update(
+                {
+                    payments: {
+                        payouts: {
+                            schedule: {
+                                interval: 'manual',
+                            },
+                        },
+                    },
+                },
+                {
+                    stripeAccount: account.id,
+                },
+            );
+
             accountId = account.id;
             await this.clientRepo.update(params.clientId, {
                 stripeAccountId: accountId

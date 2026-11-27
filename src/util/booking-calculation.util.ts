@@ -18,6 +18,20 @@ export enum PricingModes {
     PRORATED = 'prorated'
 }
 
+export function calculateApplicationFeeCentavos(
+    amountInCentavos: number,
+    feePercent: number,
+): number {
+    if (amountInCentavos <= 0 || feePercent <= 0) {
+        return 0;
+    }
+
+    // Multiply by basis points (feePercent * 100) first, then divide by 10,000
+    // to avoid floating-point drift (e.g. 0.1 * 3 = 0.30000000000000004)
+    const basisPoints = Math.round(feePercent * 100);
+    return Math.round((amountInCentavos * basisPoints) / 10_000);
+}
+
 export function calculateBookingTotalV2(selections: RoomSelection[], rooms: Room[]) {
     const calcObjs: RateCalcObj[] = [];
     for (let selection of selections) {
