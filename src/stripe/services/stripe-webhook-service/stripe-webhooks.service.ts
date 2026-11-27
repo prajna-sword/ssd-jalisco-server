@@ -252,7 +252,7 @@ export class StripeWebhooksService {
         const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
-            where: { stripePaymentIntentId: pi.id },
+            where: { paymentIntentId: pi.id },
             relations: {
                 booking: true
             },
@@ -341,7 +341,7 @@ export class StripeWebhooksService {
         const paymentRepo = queryRunner.manager.getRepository(Payment);
 
         const payment = await paymentRepo.findOne({
-            where: { stripePaymentIntentId: pi.id },
+            where: { paymentIntentId: pi.id },
             relations: {
                 booking: true
             },
@@ -421,7 +421,7 @@ export class StripeWebhooksService {
         const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
-            where: { stripePaymentIntentId: paymentIntentId },
+            where: { paymentIntentId: paymentIntentId },
             relations: {
                 booking: {
                     guest: true
@@ -474,7 +474,7 @@ export class StripeWebhooksService {
         const bookingRepo = queryRunner.manager.getRepository(Booking);
 
         const payment = await paymentRepo.findOne({
-            where: { stripePaymentIntentId: paymentIntentId },
+            where: { paymentIntentId: paymentIntentId },
             relations: {
                 booking: true
             },

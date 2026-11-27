@@ -81,4 +81,10 @@ export class StripeApiController {
     async getDraftBooking(@Param('bookingId') bookingUuid: string) {
         return this.stripePaymentService.getDraftBooking(bookingUuid);
     }
+
+    // TEST ONLY
+    @Get('capture/:intentId')
+    capturePayment(@Param('intentId') intentId: string) {
+        return this.stripePaymentService.captureHold(intentId);
+    }
 }

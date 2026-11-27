@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ClientsModule } from 'src/client/clients/clients.module';
 import { Client } from 'src/client/clients/entities/client.entity';
 import { BookingsModule } from 'src/lodging/bookings/bookings.module';
 import { GuestsModule } from 'src/lodging/guests/guests.module';
@@ -20,7 +21,8 @@ import { StripeWebhooksService } from './services/stripe-webhook-service/stripe-
     RoomsModule,
     BookingsModule,
     PaymentsModule,
-    GuestsModule
+    GuestsModule,
+    ClientsModule
   ],
   controllers: [
     StripeWebhooksController,
