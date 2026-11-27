@@ -1,8 +1,11 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BookingsService } from 'src/lodging/bookings/bookings.service';
+import { BookingStatus } from 'src/lodging/bookings/dto/booking-constants';
 import { BookingPayload } from 'src/lodging/bookings/dto/booking-payload.dto';
+import { Booking } from 'src/lodging/bookings/entities/booking.entity';
 import { GuestsService } from 'src/lodging/guests/guests.service';
 import { RoomsService } from 'src/lodging/rooms/rooms.service';
+import { PaymentTypes } from 'src/payments/dto/payment-constants';
 import { PaymentsService } from 'src/payments/payments.service';
 import { StripeCustomerService } from 'src/stripe/services/stripe-customer-service/stripe-customer.service';
 import { calculateBookingTotalV2 } from 'src/util/booking-calculation.util';
@@ -60,7 +63,6 @@ export class StripePaymentService {
             setup_future_usage: 'off_session',
             automatic_payment_methods: {
                 enabled: true,
-                allow_redirects: 'never'
             },
             // ...(params.connectedAccountId && {
             //     transfer_data: { destination: params.connectedAccountId },
@@ -95,15 +97,40 @@ export class StripePaymentService {
         throw new BadRequestException(`Stripe Intent failed: ${(error as Error).message}`);
     }
 
+    async getDraftBooking(bookingUuid: string): Promise<{ booking: Booking, clientSecret: string }> {
+        const draftBooking = await this.bookingService.getDraftBooking(bookingUuid);
+        if (!draftBooking) {
+            throw new NotFoundException('No draft booking found for booking uuid: ' + bookingUuid);
+        }
+
+        if (draftBooking.bookingStatus !== BookingStatus.PENDING) {
+            return { booking: draftBooking, clientSecret: '' }
+        }
+
+        const holdPayment = draftBooking.payments.find((p) => p.paymentType === PaymentTypes.ROOM_HOLD);
+        if (!holdPayment) {
+            throw new NotFoundException('Payment record not found for booking');
+        }
+
+        const paymentIntent = await this.stripe.paymentIntents.retrieve(
+            holdPayment.paymentIntentId,
+        );
+
+        return {
+            booking: draftBooking,
+            clientSecret: paymentIntent.client_secret as any
+        }
+    }
+
     // 2. Capture funds at checkout (pass a smaller amount for partial capture)
-    async captureHold(paymentIntentId: string, finalAmountInCentavos?: number) {
+    async captureHold(paymentIntentId: string, finalAmountInCentavos?: number): Promise<any> {
         return this.stripe.paymentIntents.capture(paymentIntentId, {
             ...(finalAmountInCentavos && { amount_to_capture: finalAmountInCentavos }),
         });
     }
 
     // 3. Release the hold completely if there are no incidentals
-    async releaseHold(paymentIntentId: string) {
+    async releaseHold(paymentIntentId: string): Promise<any> {
         return this.stripe.paymentIntents.cancel(paymentIntentId);
     }
 

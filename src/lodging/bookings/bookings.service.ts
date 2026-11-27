@@ -137,6 +137,21 @@ export class BookingsService {
     return { clientRouteSegment };
   }
 
+  async getDraftBooking(bookingUuid: string): Promise<Booking|null> {
+    return await this.bookingRepository.findOne({
+      where: {
+        bookingUuid: bookingUuid
+      },
+      relations: {
+        bookedRooms: {
+          room: true
+        },
+        guest: true,
+        payments: true
+      }
+    })
+  }
+
   async lookupBooking(referenceId: string): Promise<BookingLookupPayload> {
     let clientPage;
     let payment;

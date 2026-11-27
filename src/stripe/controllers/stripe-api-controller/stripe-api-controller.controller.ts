@@ -76,4 +76,9 @@ export class StripeApiController {
         // Pass the logged-in user's ID (or organization/client ID) from your auth guard
         return this.stripeConnectService.syncAndGetAccountStatus(clientId);
     }
+
+    @Get('draft-booking/:bookingId')
+    async getDraftBooking(@Param('bookingId') bookingUuid: string) {
+        return this.stripePaymentService.getDraftBooking(bookingUuid);
+    }
 }
