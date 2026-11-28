@@ -22,10 +22,28 @@ export class PaymentsService {
     return await this.paymentRepository.save(payment);
   }
 
-  async findByXrefId(xrefId: string): Promise<Payment | null> {
+  async getPaymentDetail(paymentId: string): Promise<Payment|null> {
+    return await this.paymentRepository.findOne({
+      where: {
+        paymentId
+      },
+      relations: {
+        booking: {
+          guest: true,
+          bookedRooms: {
+            room: true
+          }
+        }
+      }
+    })
+  }
+
+  async getClientPagePayments(clientPageId: string): Promise<Payment[]> {
     return await this.paymentRepository.createQueryBuilder('payment')
-      .where('payment.multiBookingXrefId = :xrefId', { xrefId })
-      .getOne();
+      .leftJoinAndSelect('payment.booking', 'booking')
+      .where('booking.clientPageId = :clientPageId', { clientPageId })
+      .leftJoinAndSelect('booking.guest', 'guest')
+      .getMany();
   }
 
   async findByBookingId(bookingId: string): Promise<Payment | null> {
