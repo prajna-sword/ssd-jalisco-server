@@ -16,18 +16,11 @@ export class GuestsService {
   }
 
   async findClientGuests(clientPageId: string): Promise<Guest[]> {
-    return await this.guestRepository.find({
-      where: {
-        clientPageId,
-      },
-      relations: {
-        bookings: {
-          bookedRooms: {
-            room: true
-          }
-        }
-      }
-    })
+    return await this.guestRepository.createQueryBuilder('guest')
+    .leftJoinAndSelect('guest.bookings', 'booking')
+    .where('booking.clientPageId = :clientPageId', {clientPageId})
+    .leftJoinAndSelect('booking.bookedRooms', 'bookedRoom')
+    .getMany();
   }
 
   async findOne(id: string): Promise<Guest | null> {
