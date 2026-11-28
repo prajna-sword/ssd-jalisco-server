@@ -36,7 +36,8 @@ export class GuestsService {
         bookings: {
           bookedRooms: {
             room: true
-          }
+          },
+          payments: true
         }
       }
     });
